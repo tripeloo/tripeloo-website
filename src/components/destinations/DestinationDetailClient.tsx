@@ -1040,43 +1040,43 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
                 initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: isMobile ? 0.4 : 0.8, delay: isMobile ? 0.2 : 0.7 }}
-                className="mt-8 sm:mt-10 grid lg:grid-cols-2 gap-6 lg:gap-10 items-start"
+                className="mt-8 sm:mt-10 grid lg:grid-cols-1 gap-6 lg:gap-10 items-start"
                 style={{
                   willChange: 'transform, opacity',
                 }}
               >
-                {/* Left: Need guidance card (existing) */}
-                <div>
-                  <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
-                    {/* Subtle gradient background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#E51A4B]/5 via-transparent to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
-                    <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#E51A4B] animate-pulse" />
-                          <p className="text-sm sm:text-base font-semibold text-gray-900">
-                            Need Guidance?
+                {/* Need guidance card - hidden for now */}
+                {false && (
+                  <div>
+                    <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#E51A4B]/5 via-transparent to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#E51A4B] animate-pulse" />
+                            <p className="text-sm sm:text-base font-semibold text-gray-900">
+                              Need Guidance?
+                            </p>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-500 ml-3.5">
+                            Let's create wonderful memories together
                           </p>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-500 ml-3.5">
-                          Let's create wonderful memories together
-                        </p>
+                        <motion.button
+                          onClick={() => setShowLeadPopup(true)}
+                          whileHover={{ scale: 1.02, x: 2 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex-shrink-0 inline-flex items-center gap-2 bg-[#E51A4B] hover:bg-[#c91742] text-white font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-300 text-sm whitespace-nowrap"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Connect</span>
+                        </motion.button>
                       </div>
-                      <motion.button
-                        onClick={() => setShowLeadPopup(true)}
-                        whileHover={{ scale: 1.02, x: 2 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex-shrink-0 inline-flex items-center gap-2 bg-[#E51A4B] hover:bg-[#c91742] text-white font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-300 text-sm whitespace-nowrap"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Connect</span>
-                      </motion.button>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Right: Simple destination overview form */}
+                {/* Destination overview form */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
                     Plan your trip to {destination.name}
