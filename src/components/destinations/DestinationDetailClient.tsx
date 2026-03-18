@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { optimizeCloudinaryUrl } from "@/utils/cloudinary";
@@ -293,6 +294,27 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Meta Pixel base code for destination overview page */}
+      <Script id="meta-pixel-destination-overview" strategy="afterInteractive">
+        {`
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1356009086544954');
+fbq('track', 'PageView');
+        `}
+      </Script>
+      <noscript
+        dangerouslySetInnerHTML={{
+          __html:
+            '<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1356009086544954&ev=PageView&noscript=1" />',
+        }}
+      />
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0">
         {/* Floating Orbs */}
@@ -1040,43 +1062,43 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
                 initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: isMobile ? 0.4 : 0.8, delay: isMobile ? 0.2 : 0.7 }}
-                className="mt-8 sm:mt-10 grid lg:grid-cols-2 gap-6 lg:gap-10 items-start"
+                className="mt-8 sm:mt-10 grid lg:grid-cols-1 gap-6 lg:gap-10 items-start"
                 style={{
                   willChange: 'transform, opacity',
                 }}
               >
-                {/* Left: Need guidance card (existing) */}
-                <div>
-                  <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
-                    {/* Subtle gradient background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#E51A4B]/5 via-transparent to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
-                    <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#E51A4B] animate-pulse" />
-                          <p className="text-sm sm:text-base font-semibold text-gray-900">
-                            Need Guidance?
+                {/* Need guidance card - hidden for now */}
+                {false && (
+                  <div>
+                    <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#E51A4B]/5 via-transparent to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#E51A4B] animate-pulse" />
+                            <p className="text-sm sm:text-base font-semibold text-gray-900">
+                              Need Guidance?
+                            </p>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-500 ml-3.5">
+                            Let's create wonderful memories together
                           </p>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-500 ml-3.5">
-                          Let's create wonderful memories together
-                        </p>
+                        <motion.button
+                          onClick={() => setShowLeadPopup(true)}
+                          whileHover={{ scale: 1.02, x: 2 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex-shrink-0 inline-flex items-center gap-2 bg-[#E51A4B] hover:bg-[#c91742] text-white font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-300 text-sm whitespace-nowrap"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Connect</span>
+                        </motion.button>
                       </div>
-                      <motion.button
-                        onClick={() => setShowLeadPopup(true)}
-                        whileHover={{ scale: 1.02, x: 2 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex-shrink-0 inline-flex items-center gap-2 bg-[#E51A4B] hover:bg-[#c91742] text-white font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-300 text-sm whitespace-nowrap"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Connect</span>
-                      </motion.button>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Right: Simple destination overview form */}
+                {/* Destination overview form */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
                     Plan your trip to {destination.name}
@@ -1345,7 +1367,7 @@ function DestinationOverviewForm({ destinationName }: DestinationOverviewFormPro
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
   const [showMessage, setShowMessage] = useState(false);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
@@ -1401,28 +1423,12 @@ function DestinationOverviewForm({ destinationName }: DestinationOverviewFormPro
         }
         return;
       }
-      setSubmitted(true);
-      setFormData({
-        fullName: "",
-        mobileNumber: "",
-        email: "",
-        daysPeople: "",
-        travelDate: "",
-        budget: "",
-        message: "",
-      });
+      // On successful submission, navigate to thank you page
+      router.push("/destination-overview-thank-you");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
-        Thank you! Our team will get back to you shortly.
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
