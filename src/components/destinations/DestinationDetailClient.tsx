@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { optimizeCloudinaryUrl } from "@/utils/cloudinary";
@@ -293,6 +294,27 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Meta Pixel base code for destination overview page */}
+      <Script id="meta-pixel-destination-overview" strategy="afterInteractive">
+        {`
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1356009086544954');
+fbq('track', 'PageView');
+        `}
+      </Script>
+      <noscript
+        dangerouslySetInnerHTML={{
+          __html:
+            '<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1356009086544954&ev=PageView&noscript=1" />',
+        }}
+      />
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0">
         {/* Floating Orbs */}
@@ -1345,7 +1367,7 @@ function DestinationOverviewForm({ destinationName }: DestinationOverviewFormPro
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
   const [showMessage, setShowMessage] = useState(false);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
@@ -1401,28 +1423,12 @@ function DestinationOverviewForm({ destinationName }: DestinationOverviewFormPro
         }
         return;
       }
-      setSubmitted(true);
-      setFormData({
-        fullName: "",
-        mobileNumber: "",
-        email: "",
-        daysPeople: "",
-        travelDate: "",
-        budget: "",
-        message: "",
-      });
+      // On successful submission, navigate to thank you page
+      router.push("/destination-overview-thank-you");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
-        Thank you! Our team will get back to you shortly.
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
