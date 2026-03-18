@@ -8,6 +8,8 @@ import ListCarousel from "@/components/ListDetails/ListCarousel";
 import { DurationOptionsSection } from "@/components/ListDetails/DurationOptionsSection";
 import { TourPackageEnquiryForm } from "@/components/TourPackageEnquiryForm";
 import { ChevronDown, ChevronUp, MapPin, Calendar, Package, MessageCircle } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import { getPrimaryWhatsAppNumber, formatWhatsAppNumber } from "@/utils/whatsapp";
 
 function TourPackagesContent() {
   const searchParams = useSearchParams();
@@ -258,12 +260,26 @@ function TourPackagesContent() {
   }
 
   if (list.length === 0) {
+    const whatsappUrl = `https://wa.me/${formatWhatsAppNumber(getPrimaryWhatsAppNumber())}?text=${encodeURIComponent(
+      `Hi Tripeloo! I'm interested in customized tour packages for ${destination ? decodeURIComponent(destination) : "my destination"}.`
+    )}`;
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">No tour packages yet</h1>
-          <p className="text-gray-600">There are no tour packages for this destination.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Coming soon</h1>
+          <p className="text-gray-600 mb-6">
+            Tour packages for this destination are on the way. Connect with our team for customized packages.
+          </p>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all"
+          >
+            <FaWhatsapp className="w-5 h-5" />
+            Connect on WhatsApp for customised packages
+          </a>
         </div>
       </div>
     );

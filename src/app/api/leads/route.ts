@@ -24,9 +24,10 @@ export async function POST(request: NextRequest) {
       budget,
       departureCity,
       selectedDurationOptions,
+      message,
     } = body;
 
-    const isTourPackage = itemType === 'tour-package';
+    const isSimpleLead = itemType === 'tour-package' || itemType === 'destination-overview';
 
     // Validation: for tour-package only name, email, contact are required
     const errors: Record<string, string> = {};
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       errors.mobileNumber = 'Contact number is required';
     }
 
-    if (isTourPackage) {
+    if (isSimpleLead) {
       if (!email || email.trim().length === 0) {
         errors.email = 'Email is required';
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!isTourPackage) {
+    if (!isSimpleLead) {
       if (!destination || destination.trim().length === 0) {
         errors.destination = 'Destination is required';
       }
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
       selectedDurationOptions: Array.isArray(selectedDurationOptions) && selectedDurationOptions.length > 0
         ? selectedDurationOptions.filter((s: any) => typeof s === 'string' && s.trim())
         : undefined,
+      message: message && message.trim().length > 0 ? message.trim() : undefined,
       createdAt: new Date(),
       status: 'new',
     });

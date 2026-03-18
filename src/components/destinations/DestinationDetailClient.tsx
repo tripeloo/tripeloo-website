@@ -1035,42 +1035,56 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
                 </p>
               </motion.div>
 
-              {/* Need Support Section - Elegant Ad */}
+              {/* Destination overview enquiry form */}
               <motion.div
                 initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: isMobile ? 0.4 : 0.8, delay: isMobile ? 0.2 : 0.7 }}
-                className="mt-8 sm:mt-10"
+                className="mt-8 sm:mt-10 grid lg:grid-cols-2 gap-6 lg:gap-10 items-start"
                 style={{
                   willChange: 'transform, opacity',
                 }}
               >
-                <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
-                  {/* Subtle gradient background */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#E51A4B]/5 via-transparent to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#E51A4B] animate-pulse" />
-                        <p className="text-sm sm:text-base font-semibold text-gray-900">
-                          Need Guidance?
+                {/* Left: Need guidance card (existing) */}
+                <div>
+                  <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
+                    {/* Subtle gradient background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#E51A4B]/5 via-transparent to-pink-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#E51A4B] animate-pulse" />
+                          <p className="text-sm sm:text-base font-semibold text-gray-900">
+                            Need Guidance?
+                          </p>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-500 ml-3.5">
+                          Let's create wonderful memories together
                         </p>
                       </div>
-                      <p className="text-xs sm:text-sm text-gray-500 ml-3.5">
-                        Let's create wonderful memories together
-                      </p>
+                      <motion.button
+                        onClick={() => setShowLeadPopup(true)}
+                        whileHover={{ scale: 1.02, x: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex-shrink-0 inline-flex items-center gap-2 bg-[#E51A4B] hover:bg-[#c91742] text-white font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-300 text-sm whitespace-nowrap"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Connect</span>
+                      </motion.button>
                     </div>
-                    <motion.button
-                      onClick={() => setShowLeadPopup(true)}
-                      whileHover={{ scale: 1.02, x: 2 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-shrink-0 inline-flex items-center gap-2 bg-[#E51A4B] hover:bg-[#c91742] text-white font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-300 text-sm whitespace-nowrap"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span>Connect</span>
-                    </motion.button>
                   </div>
+                </div>
+
+                {/* Right: Simple destination overview form */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
+                    Plan your trip to {destination.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mb-4">
+                    Share a few details and we’ll get back with ideas and options for this destination.
+                  </p>
+                  <DestinationOverviewForm destinationName={destination.name} />
                 </div>
               </motion.div>
 
@@ -1237,18 +1251,21 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </motion.div>
                       
-                      {/* Price Badge */}
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: sectionIndex * 0.1 + index * 0.1 + 0.2 }}
-                        className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-white/50"
-                      >
-                        <p className="text-[#E51A4B] font-bold text-sm sm:text-base">
-                          ₹{section.type === "stay" ? (item as Stay).startingPrice : (item as Activity | Trip).price}
-                          {section.type === "stay" && <span className="text-xs text-gray-600"> / night</span>}
-                        </p>
-                      </motion.div>
+                      {/* Price Badge - hide when price is 0 */}
+                      {((section.type === "stay" && (item as Stay).startingPrice > 0) ||
+                        (section.type !== "stay" && ((item as Activity | Trip).price ?? 0) > 0)) && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: sectionIndex * 0.1 + index * 0.1 + 0.2 }}
+                          className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-white/50"
+                        >
+                          <p className="text-[#E51A4B] font-bold text-sm sm:text-base">
+                            ₹{section.type === "stay" ? (item as Stay).startingPrice : (item as Activity | Trip).price}
+                            {section.type === "stay" && <span className="text-xs text-gray-600"> / night</span>}
+                          </p>
+                        </motion.div>
+                      )}
                     </div>
                     <div className="p-5 sm:p-6 flex flex-col h-full">
                       <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 group-hover:text-[#E51A4B] transition line-clamp-2 font-display">
@@ -1264,11 +1281,16 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
                           ))}
                         </ul>
                       )}
-                      {section.type !== "stay" && (
-                        <p className="text-sm text-gray-600 mb-4">
-                          Duration: {(item as Activity | Trip).duration}
-                        </p>
-                      )}
+                      {section.type !== "stay" && (() => {
+                        const dur = (item as Activity | Trip).duration;
+                        const durStr = dur != null ? String(dur).trim() : "";
+                        const hasDuration = durStr !== "" && durStr !== "0";
+                        return hasDuration ? (
+                          <p className="text-sm text-gray-600 mb-4">
+                            Duration: {dur}
+                          </p>
+                        ) : null;
+                      })()}
                       
                       {/* CTA Button */}
                       <motion.button
@@ -1304,6 +1326,220 @@ export default function DestinationDetailClient({ slug, category }: DestinationD
         itemDestination={destination?.name}
       />
     </div>
+  );
+}
+
+interface DestinationOverviewFormProps {
+  destinationName: string;
+}
+
+function DestinationOverviewForm({ destinationName }: DestinationOverviewFormProps) {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    mobileNumber: "",
+    email: "",
+    daysPeople: "",
+    budget: "",
+    message: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!formData.fullName.trim()) newErrors.fullName = "Name is required";
+    if (!formData.mobileNumber.trim()) newErrors.mobileNumber = "Contact number is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = "Enter a valid email";
+    if (!formData.daysPeople.trim()) newErrors.daysPeople = "Please enter number of days/people";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const travelCount = Number(formData.daysPeople.trim()) || 1;
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.fullName.trim(),
+          mobileNumber: formData.mobileNumber.trim(),
+          email: formData.email.trim(),
+          destination: destinationName,
+          travelCount,
+          budget: formData.budget || undefined,
+          message: formData.message?.trim() || undefined,
+          itemType: "destination-overview",
+          itemName: `Destination overview - ${destinationName}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.errors) {
+          setErrors(data.errors);
+        }
+        return;
+      }
+      setSubmitted(true);
+      setFormData({
+        fullName: "",
+        mobileNumber: "",
+        email: "",
+        daysPeople: "",
+        budget: "",
+        message: "",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+        Thank you! Our team will get back to you shortly.
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div>
+        <label className="block text-xs font-semibold text-gray-700 mb-1">
+          Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={formData.fullName}
+          onChange={(e) => handleChange("fullName", e.target.value)}
+          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent ${
+            errors.fullName ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="Your name"
+        />
+        {errors.fullName && <p className="mt-1 text-xs text-red-600">{errors.fullName}</p>}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-700 mb-1">
+          Contact number <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="tel"
+          value={formData.mobileNumber}
+          onChange={(e) => handleChange("mobileNumber", e.target.value)}
+          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent ${
+            errors.mobileNumber ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g. +91 9876543210"
+        />
+        {errors.mobileNumber && <p className="mt-1 text-xs text-red-600">{errors.mobileNumber}</p>}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-700 mb-1">
+          Email <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          value={formData.email}
+          onChange={(e) => handleChange("email", e.target.value)}
+          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent ${
+            errors.email ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="you@example.com"
+        />
+        {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-700 mb-1">
+          No. of days / people <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={formData.daysPeople}
+          onChange={(e) => handleChange("daysPeople", e.target.value)}
+          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent ${
+            errors.daysPeople ? "border-red-500" : "border-gray-300"
+          }`}
+          placeholder="e.g. 3 days / 4 people"
+        />
+        {errors.daysPeople && <p className="mt-1 text-xs text-red-600">{errors.daysPeople}</p>}
+      </div>
+
+      <div>
+        <span className="block text-xs font-semibold text-gray-700 mb-1">
+          Budget (optional)
+        </span>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {[
+            { value: "below-5k", label: "Below 5k" },
+            { value: "5k-10k", label: "5k – 10k" },
+            { value: "above-10k", label: "Above 10k" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() =>
+                handleChange("budget", formData.budget === opt.value ? "" : opt.value)
+              }
+              className={`px-3 py-1.5 rounded-full border ${
+                formData.budget === opt.value
+                  ? "bg-[#E51A4B] text-white border-[#E51A4B]"
+                  : "bg-gray-50 text-gray-700 border-gray-300"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowMessage((prev) => !prev)}
+          className="text-xs font-semibold text-[#E51A4B] hover:text-[#c91742] flex items-center gap-1 mb-1"
+        >
+          <span>{showMessage ? "Hide extra details" : "More info?"}</span>
+        </button>
+        {showMessage && (
+          <textarea
+            value={formData.message}
+            onChange={(e) => handleChange("message", e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent"
+            placeholder="Share any special plans, preferences, or questions (optional)"
+          />
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="w-full mt-2 bg-[#E51A4B] hover:bg-[#c91742] text-white text-sm font-semibold py-2.5 rounded-lg shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+      >
+        {submitting ? "Submitting..." : "Submit enquiry"}
+      </button>
+    </form>
   );
 }
 
