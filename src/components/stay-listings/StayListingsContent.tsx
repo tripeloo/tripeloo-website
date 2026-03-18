@@ -762,12 +762,12 @@ function StayListingsContent() {
           </>
         )}
 
-        {/* Tabs */}
+        {/* Tabs - 2x2 grid on mobile to prevent overflow, row on md+ */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
           transition={{ duration: 0.6 }}
-          className="flex gap-2 md:gap-3 mb-8 md:mb-10 bg-white/80 backdrop-blur-sm p-1.5 md:p-2 rounded-full shadow-lg max-w-2xl mx-auto"
+          className="grid grid-cols-2 md:flex gap-2 md:gap-3 mb-8 md:mb-10 bg-white/80 backdrop-blur-sm p-1.5 md:p-2 rounded-2xl md:rounded-full shadow-lg max-w-2xl mx-auto"
         >
           {tabData.map((tab) => (
             <motion.button
@@ -779,7 +779,7 @@ function StayListingsContent() {
                 }
                 setActiveTab(tab);
               }}
-              className={`relative flex-1 px-4 md:px-6 py-2.5 md:py-3 text-xs md:text-sm lg:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
+              className={`relative flex-1 min-w-0 px-3 py-2.5 md:px-6 md:py-3 text-xs md:text-sm lg:text-base font-semibold rounded-xl md:rounded-full transition-all whitespace-nowrap ${
                 activeTab === tab
                   ? "text-white"
                   : "text-gray-700 hover:text-[#E51A4B]"
@@ -789,11 +789,11 @@ function StayListingsContent() {
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-[#E51A4B] to-[#FF6B6B] rounded-full"
+                  className="absolute inset-0 bg-gradient-to-r from-[#E51A4B] to-[#FF6B6B] rounded-xl md:rounded-full"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-              <span className="relative z-10">{tab}</span>
+              <span className="relative z-10 truncate block text-center">{tab}</span>
             </motion.button>
           ))}
         </motion.div>
@@ -1002,17 +1002,23 @@ function StayListingsContent() {
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-4 sm:py-2 rounded-full">
-                    <p className="text-[#E51A4B] font-bold text-sm sm:text-base md:text-lg">
-                      ₹{(activity.startingPrice ?? activity.price) || 0}
-                    </p>
-                  </div>
+                  {((activity.startingPrice ?? activity.price) ?? 0) > 0 && (
+                    <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-4 sm:py-2 rounded-full">
+                      <p className="text-[#E51A4B] font-bold text-sm sm:text-base md:text-lg">
+                        ₹{(activity.startingPrice ?? activity.price)}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 sm:p-6">
                   <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mb-2 group-hover:text-[#E51A4B] transition line-clamp-2">
                     {activity.name}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-600">Duration: {activity.duration}</p>
+                  {(() => {
+                    const d = activity.duration;
+                    const hasDur = d != null && String(d).trim() !== "" && String(d).trim() !== "0";
+                    return hasDur ? <p className="text-sm sm:text-base text-gray-600">Duration: {d}</p> : null;
+                  })()}
                 </div>
               </motion.div>
             ))}
@@ -1100,17 +1106,23 @@ function StayListingsContent() {
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-4 sm:py-2 rounded-full">
-                    <p className="text-[#E51A4B] font-bold text-sm sm:text-base md:text-lg">
-                      ₹{trip.price}
-                    </p>
-                  </div>
+                  {((trip.price ?? 0) > 0) && (
+                    <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 backdrop-blur-sm px-2 py-1 sm:px-4 sm:py-2 rounded-full">
+                      <p className="text-[#E51A4B] font-bold text-sm sm:text-base md:text-lg">
+                        ₹{trip.price}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 sm:p-6">
                   <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mb-2 group-hover:text-[#E51A4B] transition line-clamp-2">
                     {trip.name}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-600">Duration: {trip.duration}</p>
+                  {(() => {
+                    const d = trip.duration;
+                    const hasDur = d != null && String(d).trim() !== "" && String(d).trim() !== "0";
+                    return hasDur ? <p className="text-sm sm:text-base text-gray-600">Duration: {d}</p> : null;
+                  })()}
                 </div>
               </motion.div>
             ))}

@@ -24,8 +24,9 @@ export default function TestimonialsCarousel({
   heading = "Testimonials",
   testimonials = []
 }: TestimonialsCarouselProps) {
+  // Faster autoplay for homepage testimonials (shorter delay between slides)
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 10000, stopOnInteraction: false })
+    Autoplay({ delay: 4000, stopOnInteraction: false })
   ]);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -49,13 +50,16 @@ export default function TestimonialsCarousel({
     return null;
   }
 
+  const currentBgImage = testimonials[selectedIndex]?.image || testimonials[0]?.image;
+
   return (
     <section className="relative min-h-screen bg-white text-black flex flex-col items-center overflow-hidden px-6 md:px-16 py-24">
-      {/* Background image */}
-      <div className="absolute inset-0 opacity-15">
-        {testimonials[0]?.image && (
+      {/* Background image - change with active testimonial */}
+      <div className="absolute inset-0 opacity-15 transition-opacity duration-700">
+        {currentBgImage && (
           <Image
-            src={testimonials[0].image}
+            key={currentBgImage}
+            src={currentBgImage}
             alt="Testimonials background"
             fill
             className="object-cover"
