@@ -16,6 +16,9 @@ interface Lead {
   itemName?: string;
   itemType?: string;
   selectedDurationOptions?: string[];
+  numberOfTravelers?: number;
+  budget?: string;
+  message?: string;
 }
 
 export default function LeadsPage() {
@@ -87,14 +90,17 @@ export default function LeadsPage() {
   };
 
   const exportToCSV = () => {
-    const headers = ["Full Name", "Mobile Number", "Email", "Destination", "Travel Count", "Travel Date", "Created At", "Status", "Item (Package)", "Selected Durations"];
+    const headers = ["Full Name", "Mobile Number", "Email", "Destination", "Travel Count", "Number of People", "Travel Date", "Budget", "Message", "Created At", "Status", "Item (Package)", "Selected Durations"];
     const rows = leads.map(lead => [
       lead.fullName,
       lead.mobileNumber,
       lead.email || "",
       lead.destination,
       lead.travelCount.toString(),
+      (lead.numberOfTravelers ?? lead.travelCount).toString(),
       formatDate(lead.travelDate),
+      lead.budget || "",
+      (lead.message || "").replace(/"/g, '""'),
       formatDate(lead.createdAt),
       lead.status,
       lead.itemName || "",
@@ -248,6 +254,8 @@ export default function LeadsPage() {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Destination</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Travelers</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Travel Date</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Budget</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Message</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
                   </tr>
@@ -289,6 +297,12 @@ export default function LeadsPage() {
                           <Calendar className="w-4 h-4" />
                           {formatDate(lead.travelDate)}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-white/80 text-sm max-w-[100px] truncate" title={lead.budget || ""}>
+                        {lead.budget || "—"}
+                      </td>
+                      <td className="px-6 py-4 text-white/80 text-sm max-w-[140px] truncate" title={lead.message || ""}>
+                        {lead.message || "—"}
                       </td>
                       <td className="px-6 py-4 text-white/80 text-sm">
                         {formatDate(lead.createdAt)}
