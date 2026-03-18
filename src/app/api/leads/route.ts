@@ -160,6 +160,9 @@ export async function GET(request: NextRequest) {
       itemName: lead.itemName || '',
       itemType: lead.itemType || '',
       selectedDurationOptions: lead.selectedDurationOptions || [],
+      numberOfTravelers: lead.numberOfTravelers ?? undefined,
+      budget: lead.budget ?? '',
+      message: lead.message ?? '',
     }));
 
     return NextResponse.json({ success: true, data: mapped });
