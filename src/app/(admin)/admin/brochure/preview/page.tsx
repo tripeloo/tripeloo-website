@@ -69,7 +69,7 @@ interface Item {
 
 interface PreviewData {
   selectedItem: Item;
-  itemType: "stay" | "activity" | "trip";
+  itemType: "stay" | "activity" | "trip" | "tour-package";
   reviews: Review[];
   customContent: string;
   customPrice: string;
@@ -569,9 +569,9 @@ export default function BrochurePreviewPage() {
               )}
 
               {/* Highlights (for Stays) */}
-              {selectedItem.properties && Array.isArray(selectedItem.properties) && selectedItem.properties.length > 0 && itemType === "stay" && (
+              {selectedItem.properties && Array.isArray(selectedItem.properties) && selectedItem.properties.length > 0 && (itemType === "stay" || itemType === "tour-package") && (
                 <div className="mt-8 mb-6 bg-white rounded-2xl p-5 sm:p-6 shadow-inner">
-                  <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">Highlights</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">{itemType === "tour-package" ? "Trip Highlights" : "Highlights"}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-gray-700 text-sm sm:text-base">
                     {selectedItem.properties.map((property: string, index: number) => (
                       <div key={index} className="flex items-start gap-2">
@@ -759,7 +759,7 @@ export default function BrochurePreviewPage() {
               })()}
 
               {/* Price Section */}
-              {(itemType === "stay" || itemType === "trip") && (
+              {(itemType === "stay" || itemType === "trip" || itemType === "tour-package") && (
                 ((selectedItem.includes && Array.isArray(selectedItem.includes) && selectedItem.includes.length > 0) || 
                  (selectedItem.excludes && Array.isArray(selectedItem.excludes) && selectedItem.excludes.length > 0)) && (
                   <div className="mb-6">

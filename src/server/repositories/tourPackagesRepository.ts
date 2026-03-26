@@ -6,14 +6,25 @@ const COLLECTION = 'tour_packages';
 export async function findTourPackagesByDestination(destinationSlugOrName: string): Promise<TourPackageListItem[]> {
   const db = await getDb();
   const normalized = destinationSlugOrName.toLowerCase().trim();
+  const slugLike = normalized.replace(/\s+/g, '-');
+  const nameLike = normalized.replace(/-/g, ' ');
+  const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   const rows = await db.collection<any>(COLLECTION)
     .find({
       $and: [
         {
           $or: [
-            { destinationSlug: { $regex: new RegExp(`^${normalized}$`, 'i') } },
+            { destinationSlug: { $regex: new RegExp(`^${escapeRegex(normalized)}$`, 'i') } },
+            { destinationSlug: { $regex: new RegExp(`^${escapeRegex(slugLike)}$`, 'i') } },
+            { destinationSlug: { $regex: new RegExp(`^${escapeRegex(nameLike)}$`, 'i') } },
             { destinationSlug: normalized },
-            { destinationSlug: { $regex: new RegExp(normalized, 'i') } },
+            { destinationSlug: slugLike },
+            { destinationSlug: nameLike },
+            { destinationName: { $regex: new RegExp(`^${escapeRegex(normalized)}$`, 'i') } },
+            { destinationName: { $regex: new RegExp(`^${escapeRegex(nameLike)}$`, 'i') } },
+            { destinationSlug: { $regex: new RegExp(escapeRegex(normalized), 'i') } },
+            { destinationName: { $regex: new RegExp(escapeRegex(normalized), 'i') } },
           ],
         },
         { isHidden: { $ne: true } },

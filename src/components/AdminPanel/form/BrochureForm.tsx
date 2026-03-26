@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Loader2, FileText, Image as ImageIcon, MapPin, Hotel, Activity, Plane, Star, Check, Users, Hourglass, Clock1, Smartphone, PawPrint, BookA, Dot, Eye } from "lucide-react";
+import { Download, Loader2, FileText, Image as ImageIcon, MapPin, Hotel, Activity, Plane, Package as PackageIcon, Star, Check, Users, Hourglass, Clock1, Smartphone, PawPrint, BookA, Dot, Eye } from "lucide-react";
 import Image from "next/image";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -79,7 +79,7 @@ export default function BrochureForm() {
   const router = useRouter();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [selectedDestination, setSelectedDestination] = useState("");
-  const [itemType, setItemType] = useState<"stay" | "activity" | "trip">("stay");
+  const [itemType, setItemType] = useState<"stay" | "activity" | "trip" | "tour-package">("stay");
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -125,8 +125,10 @@ export default function BrochureForm() {
           endpoint = `/api/stays?destination=${encodeURIComponent(destinationSlug)}`;
         } else if (itemType === "activity") {
           endpoint = `/api/activities?destination=${encodeURIComponent(destinationSlug)}`;
-        } else {
+        } else if (itemType === "trip") {
           endpoint = `/api/trips?destination=${encodeURIComponent(destinationSlug)}`;
+        } else {
+          endpoint = `/api/tour-packages?destination=${encodeURIComponent(destinationSlug)}`;
         }
 
         const res = await fetch(endpoint);
@@ -164,8 +166,10 @@ export default function BrochureForm() {
           endpoint = `/api/stays/${encodeURIComponent(selectedItemId)}`;
         } else if (itemType === "activity") {
           endpoint = `/api/activities/${encodeURIComponent(selectedItemId)}`;
-        } else {
+        } else if (itemType === "trip") {
           endpoint = `/api/trips/${encodeURIComponent(selectedItemId)}`;
+        } else {
+          endpoint = `/api/tour-packages/${encodeURIComponent(selectedItemId)}`;
         }
 
         const res = await fetch(endpoint);
@@ -185,6 +189,22 @@ export default function BrochureForm() {
           const normalizedItem = {
             ...data.data,
             id: String(data.data.id || data.data._id || ''), // Ensure ID is always a string
+            includes: Array.isArray(data.data.includes)
+              ? data.data.includes
+              : Array.isArray(data.data.inclusions)
+              ? data.data.inclusions
+              : [],
+            excludes: Array.isArray(data.data.excludes)
+              ? data.data.excludes
+              : Array.isArray(data.data.exclusions)
+              ? data.data.exclusions
+              : [],
+            location: data.data.location || data.data.destinationName || "",
+            properties: Array.isArray(data.data.properties)
+              ? data.data.properties
+              : Array.isArray(data.data.tripHighlights)
+              ? data.data.tripHighlights
+              : [],
             carouselImages: Array.isArray(data.data.carouselImages)
               ? data.data.carouselImages
                   .map((img: any) => {
@@ -259,7 +279,7 @@ export default function BrochureForm() {
   }, [selectedItemId]);
 
   useEffect(() => {
-    if (!selectedItemId || !itemType) {
+    if (!selectedItemId || !itemType || itemType === "tour-package") {
       setReviews([]);
       return;
     }
@@ -729,7 +749,7 @@ export default function BrochureForm() {
           <FileText className="w-8 h-8" />
           Brochure Generator
         </h1>
-        <p className="text-white/80">Create and download PDF brochures for stays, activities, and trips</p>
+        <p className="text-white/80">Create and download PDF brochures for stays, activities, food spots, and tour packages</p>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -765,7 +785,7 @@ export default function BrochureForm() {
             <label className="block text-sm font-medium text-white/90 mb-2">
               Item Type <span className="text-red-400">*</span>
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -814,6 +834,22 @@ export default function BrochureForm() {
                 <Plane size={18} />
                 <span className="text-sm font-medium">Food spots</span>
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setItemType("tour-package");
+                  setSelectedItemId("");
+                  setSelectedItem(null);
+                }}
+                className={`p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                  itemType === "tour-package"
+                    ? "bg-[#E51A4B] border-[#E51A4B] text-white"
+                    : "bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                }`}
+              >
+                <PackageIcon size={18} />
+                <span className="text-sm font-medium">Tour packages</span>
+              </button>
             </div>
           </div>
 
@@ -821,7 +857,7 @@ export default function BrochureForm() {
           {selectedDestination && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-white/90 mb-2">
-                Select {itemType === "stay" ? "Stay" : itemType === "activity" ? "Activity" : "Trip"}{" "}
+                Select {itemType === "stay" ? "Stay" : itemType === "activity" ? "Activity" : itemType === "trip" ? "Trip" : "Tour Package"}{" "}
                 <span className="text-red-400">*</span>
               </label>
               {loadingItems ? (
@@ -834,7 +870,7 @@ export default function BrochureForm() {
                   onChange={(e) => setSelectedItemId(e.target.value)}
                   className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent"
                 >
-                  <option value="">Select {itemType === "stay" ? "Stay" : itemType === "activity" ? "Activity" : "Trip"}</option>
+                  <option value="">Select {itemType === "stay" ? "Stay" : itemType === "activity" ? "Activity" : itemType === "trip" ? "Trip" : "Tour Package"}</option>
                   {items.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
@@ -1157,9 +1193,9 @@ export default function BrochureForm() {
               {/* Excludes Section removed */}
 
               {/* Highlights (for Stays) */}
-              {selectedItem.properties && Array.isArray(selectedItem.properties) && selectedItem.properties.length > 0 && itemType === "stay" && (
+              {selectedItem.properties && Array.isArray(selectedItem.properties) && selectedItem.properties.length > 0 && (itemType === "stay" || itemType === "tour-package") && (
                 <div className="mt-8 mb-6 bg-white rounded-2xl p-5 sm:p-6 shadow-inner">
-                  <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">Highlights</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">{itemType === "tour-package" ? "Trip Highlights" : "Highlights"}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-gray-700 text-sm sm:text-base">
                     {selectedItem.properties.map((property: string, index: number) => (
                       <div key={index} className="flex items-start gap-2">
@@ -1355,7 +1391,7 @@ export default function BrochureForm() {
               })()}
 
               {/* Price Section (for Stays/Food spots) - Keep Price Includes and Price Excludes */}
-              {(itemType === "stay" || itemType === "trip") && (
+              {(itemType === "stay" || itemType === "trip" || itemType === "tour-package") && (
                 ((selectedItem.includes && Array.isArray(selectedItem.includes) && selectedItem.includes.length > 0) || 
                  (selectedItem.excludes && Array.isArray(selectedItem.excludes) && selectedItem.excludes.length > 0)) && (
                   <div className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
