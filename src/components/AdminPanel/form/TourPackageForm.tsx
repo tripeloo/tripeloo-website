@@ -110,10 +110,18 @@ export default function TourPackageForm({ initialData, isEdit = false }: TourPac
         name: initialData.name || "",
         destinationSlug: initialData.destinationSlug || "",
         coverImage: initialData.coverImage || "",
-        carouselImages: (initialData.carouselImages || []).map((img: any) => ({
-          url: typeof img === "string" ? img : img?.url || "",
-          title: typeof img === "string" ? "" : img?.title || "",
-        })),
+        carouselImages: (initialData.carouselImages || []).map((img: any) => {
+          if (typeof img === "string") return { url: img.trim(), title: "" };
+          const url =
+            (typeof img?.url === "string" && img.url) ||
+            (typeof img?.src === "string" && img.src) ||
+            "";
+          const title =
+            (typeof img?.title === "string" && img.title) ||
+            (typeof img?.caption === "string" && img.caption) ||
+            "";
+          return { url: url.trim(), title };
+        }),
         summary: initialData.summary || "",
         packagePrice: initialData.packagePrice?.toString() ?? "",
         currency: initialData.currency || "INR",
@@ -399,21 +407,41 @@ export default function TourPackageForm({ initialData, isEdit = false }: TourPac
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Carousel Images (Optional)</label>
             {formData.carouselImages.map((img, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 mb-2 flex flex-wrap gap-4 items-start">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, true, index)}
-                  className="w-full max-w-xs"
-                />
-                <input
-                  type="text"
-                  placeholder="Caption"
-                  value={img.title}
-                  onChange={(e) => updateCarouselImage(index, "title", e.target.value)}
-                  className="flex-1 min-w-[120px] px-3 py-2 border rounded-lg"
-                />
-                <button type="button" onClick={() => removeCarouselImage(index)} className="text-red-600 hover:text-red-700"><Trash2 size={18} /></button>
+              <div key={index} className="border border-gray-200 rounded-lg p-4 mb-2 flex flex-col sm:flex-row flex-wrap gap-4 items-start">
+                {img.url?.trim() ? (
+                  <div className="w-full sm:w-44 h-28 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                    <img
+                      src={img.url.trim()}
+                      alt={img.title?.trim() || `Carousel ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full sm:w-44 h-28 shrink-0 rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500 text-center px-2">
+                    No image — upload below
+                  </div>
+                )}
+                <div className="flex-1 min-w-[200px] space-y-2 w-full">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, true, index)}
+                    className="w-full max-w-md text-sm"
+                  />
+                  <p className="text-xs text-gray-500">
+                    {img.url?.trim() ? "Choose a file to replace this image." : "Upload an image for this slot."}
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="Caption"
+                    value={img.title}
+                    onChange={(e) => updateCarouselImage(index, "title", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <button type="button" onClick={() => removeCarouselImage(index)} className="text-red-600 hover:text-red-700 self-start sm:self-center" aria-label="Remove carousel image">
+                  <Trash2 size={18} />
+                </button>
               </div>
             ))}
             <button type="button" onClick={addCarouselImage} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm">
