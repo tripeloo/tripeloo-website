@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       tripHighlights = [],
       detailedItinerary,
       countrySpecificGuidelines,
+      dmcDetails,
       formType = 'enquiry',
     } = body;
 
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       tripHighlights: Array.isArray(tripHighlights) ? tripHighlights.filter((s: string) => s?.trim()) : [],
       detailedItinerary: detailedItinerary?.trim() || '',
       countrySpecificGuidelines: countrySpecificGuidelines?.trim() || '',
+      dmcDetails: dmcDetails?.trim() || '',
       formType: formType === 'booking' || formType === 'lead' ? formType : 'enquiry',
       isHidden: false,
       createdAt: new Date(),

@@ -58,6 +58,7 @@ export async function PUT(
       tripHighlights = [],
       detailedItinerary,
       countrySpecificGuidelines,
+      dmcDetails,
       formType,
     } = body;
 
@@ -94,6 +95,7 @@ export async function PUT(
         tripHighlights: Array.isArray(tripHighlights) ? tripHighlights.filter((s: string) => s?.trim()) : [],
         detailedItinerary: detailedItinerary?.trim() || '',
         countrySpecificGuidelines: countrySpecificGuidelines?.trim() || '',
+        dmcDetails: dmcDetails?.trim() || '',
         formType: formType === 'booking' || formType === 'lead' ? formType : 'enquiry',
         updatedAt: new Date(),
       },

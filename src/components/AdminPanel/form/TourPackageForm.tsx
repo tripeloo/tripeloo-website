@@ -40,6 +40,7 @@ interface FormData {
   tripHighlights: string[];
   detailedItinerary: string;
   countrySpecificGuidelines: string;
+  dmcDetails: string;
   formType: TourPackageFormType;
 }
 
@@ -66,6 +67,7 @@ export default function TourPackageForm({ initialData, isEdit = false }: TourPac
     tripHighlights: [],
     detailedItinerary: "",
     countrySpecificGuidelines: "",
+    dmcDetails: "",
     formType: "enquiry",
   });
 
@@ -133,6 +135,7 @@ export default function TourPackageForm({ initialData, isEdit = false }: TourPac
         tripHighlights: initialData.tripHighlights || [],
         detailedItinerary: initialData.detailedItinerary || "",
         countrySpecificGuidelines: initialData.countrySpecificGuidelines || "",
+        dmcDetails: initialData.dmcDetails || "",
         formType: initialData.formType === "booking" || initialData.formType === "lead" ? initialData.formType : "enquiry",
       });
       setImagePreview(initialData.coverImage || "");
@@ -285,6 +288,7 @@ export default function TourPackageForm({ initialData, isEdit = false }: TourPac
         tripHighlights: formData.tripHighlights,
         detailedItinerary: formData.detailedItinerary.trim(),
         countrySpecificGuidelines: formData.countrySpecificGuidelines.trim(),
+        dmcDetails: formData.dmcDetails.trim(),
         formType: formData.formType,
       };
       const response = await fetch(url, {
@@ -663,6 +667,19 @@ export default function TourPackageForm({ initialData, isEdit = false }: TourPac
               onChange={handleInputChange}
               rows={5}
               placeholder="Visa, health, local rules, etc."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E51A4B] resize-y"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">DMC details (Optional)</label>
+            <p className="text-xs text-gray-500 mb-2">DMC contacts and notes (visible in admin tour package view).</p>
+            <textarea
+              name="dmcDetails"
+              value={formData.dmcDetails}
+              onChange={handleInputChange}
+              rows={5}
+              placeholder="e.g. DMC name, account manager, phone, email, escalation notes…"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E51A4B] resize-y"
             />
           </div>

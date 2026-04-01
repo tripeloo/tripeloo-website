@@ -23,6 +23,7 @@ export interface TourPackage {
   tripHighlights: string[]; // Key experiences and major attractions
   detailedItinerary: string; // formData/textarea
   countrySpecificGuidelines?: string;
+  dmcDetails?: string;
   // Form to show on package page
   formType: TourPackageFormType;
   isHidden?: boolean;
