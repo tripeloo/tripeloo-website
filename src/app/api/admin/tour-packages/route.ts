@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       numberOfDays: p.numberOfDays ?? 0,
       numberOfNights: p.numberOfNights ?? 0,
       durationOptions: p.durationOptions || [],
+      dmcDetails: p.dmcDetails || '',
       isHidden: p.isHidden || false,
       createdAt: p.createdAt || null,
       updatedAt: p.updatedAt || null,

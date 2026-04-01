@@ -750,6 +750,14 @@ export default function AdminListPage({ title, type, addRoute, editRoutePrefix, 
                   </div>
                 )}
 
+                {/* DMC details (tour packages / admin) */}
+                {viewingItem.dmcDetails?.trim() && (
+                  <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <h3 className="font-semibold text-gray-900 mb-2">DMC details</h3>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{viewingItem.dmcDetails.trim()}</p>
+                  </div>
+                )}
+
                 {/* Includes */}
                 {viewingItem.includes && viewingItem.includes.length > 0 && (
                   <div className="mb-6">
