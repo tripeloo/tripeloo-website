@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import {
   Share2,
@@ -28,7 +28,11 @@ import {
 } from "@/utils/buildAdminShareMessage";
 import {
   buildImageShareCaption,
-  shareImagesToWhatsApp,
+  desktopFallbackShare,
+  getSelectedFiles,
+  isMobileShareDevice,
+  prefetchImageFiles,
+  shareFilesNow,
 } from "@/utils/sharePropertyImages";
 
 interface Destination {
@@ -201,8 +205,14 @@ export default function SharePanel() {
   const [includeSummary, setIncludeSummary] = useState(true);
   const [includePrice, setIncludePrice] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [sharingImages, setSharingImages] = useState(false);
-  const [shareProgress, setShareProgress] = useState("");
+  const [photosLoading, setPhotosLoading] = useState(false);
+  const [photosReady, setPhotosReady] = useState(false);
+  const [photoLoadProgress, setPhotoLoadProgress] = useState("");
+  const [sharePrompt, setSharePrompt] = useState<{
+    files: File[];
+    caption: string;
+  } | null>(null);
+  const fileCacheRef = useRef<Map<string, File>>(new Map());
 
   const destinationName =
     destinations.find((d) => d.id === selectedDestination)?.name ?? "";
@@ -358,6 +368,46 @@ export default function SharePanel() {
   }, [allImages]);
 
   useEffect(() => {
+    fileCacheRef.current = new Map();
+    setPhotosReady(false);
+    setPhotoLoadProgress("");
+
+    if (allImages.length === 0) {
+      setPhotosLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setPhotosLoading(true);
+
+    prefetchImageFiles(allImages, (loaded, total) => {
+      if (!cancelled) {
+        setPhotoLoadProgress(`${loaded}/${total}`);
+      }
+    })
+      .then((cache) => {
+        if (!cancelled) {
+          fileCacheRef.current = cache;
+          setPhotosReady(true);
+          setPhotoLoadProgress("");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPhotosReady(false);
+          setPhotoLoadProgress("");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setPhotosLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [allImages]);
+
+  useEffect(() => {
     setEnabledSectionIds(new Set(detailSections.map((s) => s.id)));
     setIncludeSummary(true);
     setIncludePrice(true);
@@ -412,10 +462,26 @@ export default function SharePanel() {
     }
   };
 
-  const handleShareImages = async () => {
-    if (!selectedItem || sharingImages) return;
+  const handleShareImages = () => {
+    if (!selectedItem) return;
     if (selectedImages.length === 0) {
       alert("Please select at least one image to share.");
+      return;
+    }
+
+    const files = getSelectedFiles(selectedImages, fileCacheRef.current);
+
+    if (files.length !== selectedImages.length || !photosReady) {
+      alert(
+        photosLoading
+          ? "Photos are still loading. Wait for “Ready to share”, then tap again."
+          : "Could not load photos. Check your connection and try again."
+      );
+      return;
+    }
+
+    if (files.length > 30) {
+      alert("Please select 30 images or fewer per share.");
       return;
     }
 
@@ -425,39 +491,29 @@ export default function SharePanel() {
       itemTypeLabel(itemType)
     );
 
-    setSharingImages(true);
-    setShareProgress("Preparing images…");
+    const result = shareFilesNow(files, caption);
 
-    try {
-      const result = await shareImagesToWhatsApp(
-        selectedImages,
-        caption,
-        (current, total, phase) => {
-          if (phase === "loading" && total > 0) {
-            setShareProgress(`Loading image ${current} of ${total}…`);
-          } else {
-            setShareProgress("Opening share…");
-          }
-        }
-      );
+    if (result.ok) return;
 
-      if (result === "download-fallback") {
-        setShareProgress("Images saved — attach them in WhatsApp");
-        setTimeout(() => setShareProgress(""), 4000);
-      } else {
-        setShareProgress("");
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        setShareProgress("");
-        return;
-      }
-      const msg =
-        err instanceof Error ? err.message : "Failed to share images. Please try again.";
-      alert(msg);
-      setShareProgress("");
-    } finally {
-      setSharingImages(false);
+    if (result.reason === "blocked") return;
+
+    if (isMobileShareDevice()) {
+      setSharePrompt({ files, caption });
+      return;
+    }
+
+    void desktopFallbackShare(files, caption);
+  };
+
+  const handleSharePromptTap = () => {
+    if (!sharePrompt) return;
+    const result = shareFilesNow(sharePrompt.files, sharePrompt.caption);
+    if (result.ok) {
+      setSharePrompt(null);
+      return;
+    }
+    if (result.reason !== "blocked") {
+      alert(result.message);
     }
   };
 
@@ -508,7 +564,8 @@ export default function SharePanel() {
           WhatsApp Share
         </h1>
         <p className="text-white/80 text-sm sm:text-base">
-          Select a destination and property, then share actual photos or text details on WhatsApp
+          On your phone: wait for photos to load, tap Share, then pick WhatsApp — all images go
+          together in one share.
         </p>
       </div>
 
@@ -685,6 +742,18 @@ export default function SharePanel() {
                   <p className="text-sm text-white/70">
                     {selectedImages.length} of {allImages.length} images selected
                   </p>
+                  {photosLoading && (
+                    <p className="text-xs text-amber-300 mt-1 flex items-center gap-1">
+                      <Loader2 className="animate-spin" size={12} />
+                      Loading photos {photoLoadProgress ? `(${photoLoadProgress})` : "…"}
+                    </p>
+                  )}
+                  {photosReady && !photosLoading && (
+                    <p className="text-xs text-[#25D366] mt-1 flex items-center gap-1">
+                      <Check size={12} />
+                      Ready to share all together
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -746,40 +815,28 @@ export default function SharePanel() {
                 </div>
               )}
 
-              {shareProgress && (
-                <p className="text-sm text-[#25D366] mt-4 flex items-center gap-2 md:hidden">
-                  <Loader2 className="animate-spin" size={16} />
-                  {shareProgress}
-                </p>
-              )}
-
-              {shareProgress && (
-                <p className="text-sm text-[#25D366] mt-4 hidden md:flex items-center gap-2">
-                  <Loader2 className="animate-spin" size={16} />
-                  {shareProgress}
-                </p>
-              )}
-
               <div className="hidden md:flex gap-3 mt-6">
                 <button
                   type="button"
                   onClick={handleShareImages}
-                  disabled={selectedImages.length === 0 || sharingImages}
+                  disabled={
+                    selectedImages.length === 0 || photosLoading || !photosReady
+                  }
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
                 >
-                  {sharingImages ? (
+                  {photosLoading ? (
                     <Loader2 className="animate-spin" size={20} />
                   ) : (
                     <Share2 size={20} />
                   )}
-                  {sharingImages
-                    ? "Preparing…"
-                    : `Share ${selectedImages.length} photo(s) on WhatsApp`}
+                  {photosLoading
+                    ? `Loading photos${photoLoadProgress ? ` (${photoLoadProgress})` : "…"}`
+                    : `Share ${selectedImages.length} photo(s) together`}
                 </button>
                 <button
                   type="button"
                   onClick={handleCopyCaption}
-                  disabled={sharingImages}
+                  disabled={photosLoading}
                   className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-xl disabled:opacity-50"
                 >
                   {copied ? <Check size={18} /> : <Copy size={18} />}
@@ -788,8 +845,8 @@ export default function SharePanel() {
               </div>
 
               <p className="text-xs text-white/50 mt-4 hidden md:block">
-                On phone: pick WhatsApp from the share menu — photos attach directly. On desktop:
-                images download first, then WhatsApp opens so you can attach them.
+                Wait for “Ready to share”, then tap Share — your phone opens the share menu with
+                all photos at once. Pick WhatsApp. Use Chrome or Safari on mobile.
               </p>
             </div>
           )}
@@ -900,37 +957,70 @@ export default function SharePanel() {
         </>
       )}
 
+      {sharePrompt && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60">
+          <div className="w-full max-w-sm bg-gray-900 border border-white/20 rounded-2xl p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-white mb-2">Share photos</h3>
+            <p className="text-sm text-white/70 mb-5">
+              Tap below to open the share menu with {sharePrompt.files.length} photo(s)
+              together. Then choose WhatsApp.
+            </p>
+            <button
+              type="button"
+              onClick={handleSharePromptTap}
+              className="w-full py-3.5 mb-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+            >
+              <Share2 size={20} />
+              Open share menu
+            </button>
+            <button
+              type="button"
+              onClick={() => setSharePrompt(null)}
+              className="w-full py-2.5 text-white/70 hover:text-white text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {showShareActions && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 p-4 bg-gray-900/95 backdrop-blur-md border-t border-white/20 safe-area-pb">
           {activeTab === "gallery" ? (
-            <div className="flex gap-2">
-              {shareProgress && (
-                <p className="text-xs text-[#25D366] mb-2 text-center">{shareProgress}</p>
+            <div className="flex flex-col gap-2">
+              {photosLoading && (
+                <p className="text-xs text-amber-300 text-center flex items-center justify-center gap-1">
+                  <Loader2 className="animate-spin" size={12} />
+                  Loading photos {photoLoadProgress ? `(${photoLoadProgress})` : "…"}
+                </p>
               )}
-              <button
-                type="button"
-                onClick={handleShareImages}
-                disabled={selectedImages.length === 0 || sharingImages}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 text-white font-semibold rounded-xl"
-              >
-                {sharingImages ? (
-                  <Loader2 className="animate-spin" size={22} />
-                ) : (
+              {photosReady && !photosLoading && (
+                <p className="text-xs text-[#25D366] text-center">
+                  Ready — share opens all photos together
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleShareImages}
+                  disabled={
+                    selectedImages.length === 0 || photosLoading || !photosReady
+                  }
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 text-white font-semibold rounded-xl"
+                >
                   <Share2 size={22} />
-                )}
-                {sharingImages
-                  ? "Preparing…"
-                  : `Share ${selectedImages.length} photo(s)`}
-              </button>
-              <button
-                type="button"
-                onClick={handleCopyCaption}
-                disabled={sharingImages}
-                className="p-3.5 bg-gray-800 border border-gray-600 rounded-xl disabled:opacity-50"
-                aria-label="Copy caption"
-              >
-                {copied ? <Check size={22} /> : <Copy size={22} />}
-              </button>
+                  Share {selectedImages.length} together
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyCaption}
+                  disabled={photosLoading}
+                  className="p-3.5 bg-gray-800 border border-gray-600 rounded-xl disabled:opacity-50"
+                  aria-label="Copy caption"
+                >
+                  {copied ? <Check size={22} /> : <Copy size={22} />}
+                </button>
+              </div>
             </div>
           ) : (
             <button
