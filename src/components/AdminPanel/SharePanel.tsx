@@ -15,6 +15,7 @@ import {
   Copy,
   CheckSquare,
   Square,
+  Search,
 } from "lucide-react";
 import { optimizeCloudinaryUrl } from "@/utils/cloudinary";
 import {
@@ -51,6 +52,7 @@ interface AdditionalDetail {
 interface Item {
   id: string;
   name: string;
+  propertyName?: string;
   category?: string;
   coverImage: string;
   carouselImages?: string[] | Array<{ url: string; title?: string }>;
@@ -188,6 +190,59 @@ function itemTypeLabel(type: ItemType): string {
   return "Tour package";
 }
 
+function itemMatchesSearch(item: Item, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [item.name, item.propertyName, item.category, item.location]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(q);
+}
+
+function destinationMatchesSearch(dest: Destination, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [dest.name, dest.slug].filter(Boolean).join(" ").toLowerCase();
+  return haystack.includes(q);
+}
+
+function ItemNameHeading({
+  item,
+  subtitle,
+}: {
+  item: Item;
+  itemType: ItemType;
+  subtitle?: string;
+}) {
+  const propertyName = item.propertyName?.trim();
+
+  return (
+    <div>
+      <p className="text-lg font-semibold leading-snug">{item.name}</p>
+      {propertyName && (
+        <p className="text-sm text-amber-300/90 mt-0.5 leading-snug">{propertyName}</p>
+      )}
+      {subtitle && <p className="text-sm text-white/70 mt-1">{subtitle}</p>}
+    </div>
+  );
+}
+
+function ItemSearchListLabel({ item }: { item: Item }) {
+  const propertyName = item.propertyName?.trim();
+
+  return (
+    <>
+      <p className="font-medium text-white leading-snug">{item.name}</p>
+      {propertyName && (
+        <p className="text-sm text-amber-300/90 mt-0.5 leading-snug break-words">
+          {propertyName}
+        </p>
+      )}
+    </>
+  );
+}
+
 export default function SharePanel() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [selectedDestination, setSelectedDestination] = useState("");
@@ -197,6 +252,8 @@ export default function SharePanel() {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [destinationSearchQuery, setDestinationSearchQuery] = useState("");
+  const [itemSearchQuery, setItemSearchQuery] = useState("");
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<ShareTab>("gallery");
@@ -216,6 +273,18 @@ export default function SharePanel() {
 
   const destinationName =
     destinations.find((d) => d.id === selectedDestination)?.name ?? "";
+
+  const filteredDestinations = useMemo(
+    () => destinations.filter((dest) => destinationMatchesSearch(dest, destinationSearchQuery)),
+    [destinations, destinationSearchQuery]
+  );
+
+  const handleDestinationSelect = (destId: string) => {
+    setSelectedDestination(destId);
+    setSelectedItemId("");
+    setSelectedItem(null);
+    setItemSearchQuery("");
+  };
 
   useEffect(() => {
     const fetchDestinations = async () => {
@@ -256,7 +325,15 @@ export default function SharePanel() {
 
         const res = await fetch(endpoint);
         const data = await res.json();
-        setItems(data.data && Array.isArray(data.data) ? data.data : []);
+        setItems(
+          data.data && Array.isArray(data.data)
+            ? data.data.map((item: Item) => ({
+                ...item,
+                id: String(item.id),
+                propertyName: item.propertyName?.trim() || "",
+              }))
+            : []
+        );
       } catch {
         setItems([]);
       } finally {
@@ -266,6 +343,11 @@ export default function SharePanel() {
 
     fetchItems();
   }, [selectedDestination, itemType, destinations]);
+
+  const filteredItems = useMemo(
+    () => items.filter((item) => itemMatchesSearch(item, itemSearchQuery)),
+    [items, itemSearchQuery]
+  );
 
   useEffect(() => {
     if (!selectedItemId) {
@@ -296,6 +378,7 @@ export default function SharePanel() {
           const normalizedItem: Item = {
             ...data.data,
             id: String(data.data.id || data.data._id || ""),
+            propertyName: data.data.propertyName?.trim() || "",
             includes: Array.isArray(data.data.includes)
               ? data.data.includes
               : Array.isArray(data.data.inclusions)
@@ -324,8 +407,13 @@ export default function SharePanel() {
         }
       } catch {
         const item = items.find((i) => String(i.id) === String(selectedItemId));
-        if (item) setSelectedItem({ ...item, id: String(item.id) });
-        else setSelectedItem(null);
+        if (item) {
+          setSelectedItem({
+            ...item,
+            id: String(item.id),
+            propertyName: item.propertyName || "",
+          });
+        } else setSelectedItem(null);
       } finally {
         setLoading(false);
       }
@@ -576,24 +664,72 @@ export default function SharePanel() {
           <label className="block text-sm font-medium text-white/90 mb-2">
             Destination <span className="text-red-400">*</span>
           </label>
-          <select
-            value={selectedDestination}
-            onChange={(e) => {
-              setSelectedDestination(e.target.value);
-              setSelectedItemId("");
-              setSelectedItem(null);
-            }}
-            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-[#E51A4B]"
-          >
-            <option value="">Select destination</option>
-            {destinations.map((dest) => (
-              <option key={dest.id} value={dest.id}>
-                {dest.name}
-              </option>
-            ))}
-          </select>
+          {destinations.length === 0 ? (
+            <p className="text-sm text-white/60 p-3 bg-gray-800 rounded-lg border border-gray-600">
+              Loading destinations…
+            </p>
+          ) : (
+            <>
+              <div className="relative mb-2">
+                <Search
+                  size={18}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
+                />
+                <input
+                  type="search"
+                  value={destinationSearchQuery}
+                  onChange={(e) => setDestinationSearchQuery(e.target.value)}
+                  placeholder="Search destinations…"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent"
+                />
+              </div>
+              <p className="text-xs text-white/50 mb-2">
+                {filteredDestinations.length} of {destinations.length} destination
+                {destinations.length !== 1 ? "s" : ""}
+              </p>
+              <div className="max-h-48 sm:max-h-56 overflow-y-auto rounded-lg border border-gray-600 bg-gray-800 divide-y divide-gray-700">
+                {filteredDestinations.length === 0 ? (
+                  <p className="text-sm text-white/60 p-4 text-center">
+                    No matches for &ldquo;{destinationSearchQuery}&rdquo;
+                  </p>
+                ) : (
+                  filteredDestinations.map((dest) => {
+                    const isSelected = dest.id === selectedDestination;
+
+                    return (
+                      <button
+                        key={dest.id}
+                        type="button"
+                        onClick={() => handleDestinationSelect(dest.id)}
+                        className={`w-full text-left p-3 transition-colors flex items-start gap-3 ${
+                          isSelected
+                            ? "bg-[#E51A4B]/20 border-l-4 border-l-[#E51A4B]"
+                            : "hover:bg-gray-700/80 border-l-4 border-l-transparent"
+                        }`}
+                      >
+                        <div
+                          className={`mt-0.5 w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center ${
+                            isSelected ? "bg-[#E51A4B]" : "bg-gray-600"
+                          }`}
+                        >
+                          {isSelected && <Check size={12} className="text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white leading-snug">{dest.name}</p>
+                          {dest.slug && dest.slug.toLowerCase() !== dest.name.toLowerCase() && (
+                            <p className="text-xs text-white/50 mt-0.5 break-words">{dest.slug}</p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
         </div>
 
+        {/* Type selector — stays only; activities, food spots, tours commented out
         <div className="mb-4">
           <label className="block text-sm font-medium text-white/90 mb-2">Type</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -612,6 +748,7 @@ export default function SharePanel() {
                   setItemType(type);
                   setSelectedItemId("");
                   setSelectedItem(null);
+                  setItemSearchQuery("");
                 }}
                 className={`p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${
                   itemType === type
@@ -625,6 +762,7 @@ export default function SharePanel() {
             ))}
           </div>
         </div>
+        */}
 
         {selectedDestination && (
           <div className="mb-4">
@@ -635,19 +773,70 @@ export default function SharePanel() {
               <div className="flex justify-center p-4">
                 <Loader2 className="animate-spin text-[#E51A4B]" size={24} />
               </div>
+            ) : items.length === 0 ? (
+              <p className="text-sm text-white/60 p-3 bg-gray-800 rounded-lg border border-gray-600">
+                No {itemTypeLabel(itemType).toLowerCase()}s found for this destination.
+              </p>
             ) : (
-              <select
-                value={selectedItemId}
-                onChange={(e) => setSelectedItemId(e.target.value)}
-                className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-[#E51A4B]"
-              >
-                <option value="">Select {itemTypeLabel(itemType).toLowerCase()}</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+              <>
+                <div className="relative mb-2">
+                  <Search
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
+                  />
+                  <input
+                    type="search"
+                    value={itemSearchQuery}
+                    onChange={(e) => setItemSearchQuery(e.target.value)}
+                    placeholder="Search by display name or property name…"
+                    className="w-full pl-10 pr-3 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-white/40 focus:ring-2 focus:ring-[#E51A4B] focus:border-transparent"
+                  />
+                </div>
+                <p className="text-xs text-white/50 mb-2">
+                  {filteredItems.length} of {items.length}{" "}
+                  {itemTypeLabel(itemType).toLowerCase()}
+                  {filteredItems.length !== 1 ? "s" : ""}
+                  {" — property name shown under display name"}
+                </p>
+                <div className="max-h-64 sm:max-h-72 overflow-y-auto rounded-lg border border-gray-600 bg-gray-800 divide-y divide-gray-700">
+                  {filteredItems.length === 0 ? (
+                    <p className="text-sm text-white/60 p-4 text-center">
+                      No matches for &ldquo;{itemSearchQuery}&rdquo;
+                    </p>
+                  ) : (
+                    filteredItems.map((item) => {
+                      const isSelected = String(item.id) === String(selectedItemId);
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setSelectedItemId(String(item.id))}
+                          className={`w-full text-left p-3 transition-colors flex items-start gap-3 ${
+                            isSelected
+                              ? "bg-[#E51A4B]/20 border-l-4 border-l-[#E51A4B]"
+                              : "hover:bg-gray-700/80 border-l-4 border-l-transparent"
+                          }`}
+                        >
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center ${
+                              isSelected ? "bg-[#E51A4B]" : "bg-gray-600"
+                            }`}
+                          >
+                            {isSelected && <Check size={12} className="text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <ItemSearchListLabel item={item} />
+                            {item.category && (
+                              <p className="text-xs text-white/50 mt-1">{item.category}</p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -738,10 +927,11 @@ export default function SharePanel() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold">{selectedItem.name}</h3>
-                  <p className="text-sm text-white/70">
-                    {selectedImages.length} of {allImages.length} images selected
-                  </p>
+                  <ItemNameHeading
+                    item={selectedItem}
+                    itemType={itemType}
+                    subtitle={`${selectedImages.length} of ${allImages.length} images selected`}
+                  />
                   {photosLoading && (
                     <p className="text-xs text-amber-300 mt-1 flex items-center gap-1">
                       <Loader2 className="animate-spin" size={12} />
@@ -854,10 +1044,11 @@ export default function SharePanel() {
           {activeTab === "details" && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">{selectedItem.name}</h3>
-                  <p className="text-sm text-white/70">Choose sections to include in the message</p>
-                </div>
+                <ItemNameHeading
+                  item={selectedItem}
+                  itemType={itemType}
+                  subtitle="Choose sections to include in the message"
+                />
                 <div className="flex gap-2">
                   <button
                     type="button"

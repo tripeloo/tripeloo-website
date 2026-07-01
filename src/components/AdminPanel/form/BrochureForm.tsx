@@ -780,7 +780,7 @@ export default function BrochureForm() {
             </select>
           </div>
 
-          {/* Item Type Selection */}
+          {/* Item Type Selection — stays only; activities, food spots, tour packages commented out
           <div className="mb-4">
             <label className="block text-sm font-medium text-white/90 mb-2">
               Item Type <span className="text-red-400">*</span>
@@ -852,6 +852,7 @@ export default function BrochureForm() {
               </button>
             </div>
           </div>
+          */}
 
           {/* Item Selection */}
           {selectedDestination && (
@@ -1570,7 +1571,7 @@ export default function BrochureForm() {
                     Email: <a href="mailto:support@tripeloo.com" className="text-[#E51A4B] hover:underline">support@tripeloo.com</a>
                   </p>
                   <p className="text-sm text-gray-700 mb-3">
-                    Phone: <a href="tel:7066444430" className="text-[#E51A4B] hover:underline">7066444430</a>
+                    Phone: <a href="tel:90379179463" className="text-[#E51A4B] hover:underline">90379179463</a>
                   </p>
                   <div className="flex justify-center gap-4 items-center">
                     <a 

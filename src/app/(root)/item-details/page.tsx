@@ -139,7 +139,7 @@ const ListingDetailsContent = () => {
     const handleWhatsAppSupport = () => {
       if (typeof window !== 'undefined') {
         const text = `Hi Tripeloo! I would like to discuss about my vacation and stays. Stay ID: ${stayId || 'N/A'}`;
-        const url = `https://wa.me/917066444430?text=${encodeURIComponent(text)}`;
+        const url = `https://wa.me/9190379179463?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
       }
     };
@@ -202,7 +202,7 @@ const ListingDetailsContent = () => {
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-500 mb-2">Need immediate assistance?</p>
               <a
-                href="tel:+917066444430"
+                href="tel:+9190379179463"
                 className="text-[#E51A4B] hover:text-[#C4163F] font-medium text-sm"
               >
                 Call us: +91 70664 44430
@@ -351,7 +351,7 @@ const ListingDetailsContent = () => {
               />
             </div>
 
-            {/* Nearby Things To Do */}
+            {/* Nearby Things To Do — commented out, stays only
             {stayData.nearbyActivities && stayData.nearbyActivities.length > 0 && (
               <NearbyItems
                 title="Nearby Things To Do"
@@ -360,7 +360,7 @@ const ListingDetailsContent = () => {
               />
             )}
 
-            {/* Nearby Food spots */}
+            Nearby Food spots — commented out
             {stayData.nearbyTrips && stayData.nearbyTrips.length > 0 && (
               <NearbyItems
                 title="Nearby Food spots"
@@ -368,6 +368,7 @@ const ListingDetailsContent = () => {
                 itemType="trip"
               />
             )}
+            */}
 
             {/* Mobile Booking Button - Fixed at bottom */}
             <div className="md:hidden">

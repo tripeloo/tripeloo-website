@@ -27,6 +27,7 @@ export async function findActivitiesByDestination(destinationSlugOrName: string)
   return rows.map((r) => ({
     id: r._id?.toString() || r.id || '',
     name: r.name || '',
+    propertyName: r.propertyName || '',
     coverImage: r.coverImage || r.image || '',
     duration: r.duration || '',
     price: r.startingPrice || r.price || 0, // Check startingPrice first (like stays), then fallback to price

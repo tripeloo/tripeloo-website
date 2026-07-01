@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import type { Swiper as SwiperType } from "swiper";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { optimizeCloudinaryUrl } from "@/utils/cloudinary";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
-import { ArrowRight, Phone } from "lucide-react";
-import { getPrimaryWhatsAppNumber } from "@/utils/whatsapp";
+import { ArrowRight } from "lucide-react";
 import { LeadFormPopup } from "@/components/LeadFormPopup";
+import { StayCardActions } from "@/components/StayCardActions";
 import "swiper/css";
 import "swiper/css/navigation";
 
 interface DestinationStaysSectionProps {
   destinationSlug?: string;
   destinationName?: string;
+  compact?: boolean;
 }
 
 interface StayCard {
@@ -25,15 +27,33 @@ interface StayCard {
   startingPrice?: number;
 }
 
-const PHONE_HREF = `tel:${getPrimaryWhatsAppNumber().replace(/[\s\-]/g, "")}`;
-
-export function DestinationStaysSection({ destinationSlug = "wayanad", destinationName: propDestinationName }: DestinationStaysSectionProps = {}) {
+export function DestinationStaysSection({
+  destinationSlug = "wayanad",
+  destinationName: propDestinationName,
+  compact = false,
+}: DestinationStaysSectionProps = {}) {
   const router = useRouter();
   const [destinationName, setDestinationName] = useState(propDestinationName || "Wayanad");
   const [stays, setStays] = useState<StayCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLeadPopup, setShowLeadPopup] = useState(false);
   const [leadPopupStay, setLeadPopupStay] = useState<StayCard | null>(null);
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const swiperRef = useRef<SwiperType | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const isDraggingRef = useRef(false);
+
+  const initSwiperNavigation = (swiper: SwiperType) => {
+    if (!prevRef.current || !nextRef.current || !swiper.navigation) return;
+
+    if (typeof swiper.params.navigation !== "boolean" && swiper.params.navigation) {
+      swiper.params.navigation.prevEl = prevRef.current;
+      swiper.params.navigation.nextEl = nextRef.current;
+    }
+    swiper.navigation.init();
+    swiper.navigation.update();
+  };
 
   useEffect(() => {
     const slug = destinationSlug || "wayanad";
@@ -68,6 +88,24 @@ export function DestinationStaysSection({ destinationSlug = "wayanad", destinati
     fetchStays();
   }, [destinationSlug, propDestinationName]);
 
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || stays.length <= 1) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const swiper = swiperRef.current;
+        if (!entry.isIntersecting || !swiper) return;
+        swiper.update();
+        initSwiperNavigation(swiper);
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [stays.length, destinationSlug]);
+
   const handleStayClick = (stayId: string) => {
     const params = new URLSearchParams({
       stay: stayId,
@@ -76,7 +114,7 @@ export function DestinationStaysSection({ destinationSlug = "wayanad", destinati
     router.push(`/item-details?${params.toString()}`);
   };
 
-  const discoverMoreUrl = `/stay-listings?destination=${encodeURIComponent(destinationName)}`;
+  const discoverMoreUrl = `/stay-listings?destination=${encodeURIComponent(destinationName)}&category=stays`;
 
   const openLeadForm = (stay: StayCard, e: React.MouseEvent) => {
     e.preventDefault();
@@ -85,11 +123,14 @@ export function DestinationStaysSection({ destinationSlug = "wayanad", destinati
     setShowLeadPopup(true);
   };
 
+  const canSwipe = stays.length > 1;
+  const desktopSlidesPerView = Math.min(3, stays.length);
+
   if (loading) {
     return (
-      <section className="py-12 bg-gradient-to-b from-gray-50/50 to-white">
+      <section className={compact ? "py-6 sm:py-8" : "py-12 bg-gradient-to-b from-gray-50/50 to-white"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#E51A4B] border-t-transparent" />
           </div>
         </div>
@@ -136,69 +177,130 @@ export function DestinationStaysSection({ destinationSlug = "wayanad", destinati
             <ArrowRight className="w-5 h-5" />
           </motion.div>
         </div>
-        {/* Phone + Connect with Tripeloo buddy - stop propagation so card click doesn't fire */}
-        <div
-          className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <a
-            href={PHONE_HREF}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-gray-700 hover:bg-[#E51A4B] hover:text-white transition-colors shrink-0"
-            aria-label="Call Tripeloo"
-          >
-            <Phone className="w-5 h-5" />
-          </a>
-          <button
-            type="button"
-            onClick={onConnectClick}
-            className="flex-1 min-w-0 py-2.5 px-3 rounded-xl bg-[#E51A4B] hover:bg-[#c91742] text-white text-xs sm:text-sm font-semibold transition-colors text-center"
-          >
-            Connect with Tripeloo buddy
-          </button>
-        </div>
+        <StayCardActions
+          stayName={stay.name}
+          location={destinationName}
+          onFormClick={onConnectClick}
+        />
       </div>
     </>
   );
 
   return (
-    <section className="py-10 sm:py-12 bg-gradient-to-b from-gray-50/50 to-white">
+    <section
+      ref={sectionRef}
+      className={
+        compact
+          ? "py-6 sm:py-8 border-b border-gray-100 last:border-b-0"
+          : "py-10 sm:py-12 bg-gradient-to-b from-gray-50/50 to-white"
+      }
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-6 sm:mb-8"
+          className="flex items-end justify-between gap-3 mb-5 sm:mb-6"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 font-display">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 font-display">
             Stays in {destinationName}
           </h2>
+          <Link
+            href={discoverMoreUrl}
+            className="text-[#E51A4B] text-sm font-semibold shrink-0 hover:text-red-700 transition-colors"
+          >
+            View all
+          </Link>
         </motion.div>
 
         {/* Carousel: mobile = 1 card + peek of next, autoplay; desktop = 4 cards */}
         <div className="relative px-2 sm:px-4 md:px-12">
+          {stays.length > 1 && (
+            <>
+              <button
+                ref={prevRef}
+                type="button"
+                className="absolute left-0 md:left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white text-gray-800 p-2.5 md:p-3 rounded-full shadow-xl border border-gray-200 hover:border-[#E51A4B] hover:text-[#E51A4B] flex items-center justify-center"
+                aria-label={`Previous stays in ${destinationName}`}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                ref={nextRef}
+                type="button"
+                className="absolute right-0 md:right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white text-gray-800 p-2.5 md:p-3 rounded-full shadow-xl border border-gray-200 hover:border-[#E51A4B] hover:text-[#E51A4B] flex items-center justify-center"
+                aria-label={`Next stays in ${destinationName}`}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
           <Swiper
+            key={`${destinationSlug}-${stays.length}`}
             modules={[Navigation, Autoplay]}
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+              requestAnimationFrame(() => {
+                initSwiperNavigation(swiper);
+                swiper.update();
+              });
+            }}
+            onSliderMove={() => {
+              isDraggingRef.current = true;
+            }}
+            onTouchEnd={() => {
+              window.setTimeout(() => {
+                isDraggingRef.current = false;
+              }, 80);
+            }}
+            onBeforeInit={(swiper) => {
+              if (typeof swiper.params.navigation !== "boolean" && swiper.params.navigation) {
+                swiper.params.navigation.prevEl = prevRef.current;
+                swiper.params.navigation.nextEl = nextRef.current;
+              }
+            }}
+            observer
+            observeParents
+            updateOnWindowResize
             spaceBetween={16}
-            slidesPerView={1.15}
+            slidesPerView={Math.min(1.15, stays.length)}
             slidesPerGroup={1}
             breakpoints={{
               768: {
-                slidesPerView: 4,
+                slidesPerView: desktopSlidesPerView,
                 spaceBetween: 24,
               },
             }}
             navigation={{
-              nextEl: ".swiper-button-next-dest-stays",
-              prevEl: ".swiper-button-prev-dest-stays",
+              prevEl: prevRef.current,
+              nextEl: nextRef.current,
             }}
-            autoplay={{ delay: 3500, disableOnInteraction: false }}
-            loop={stays.length > 1}
+            autoplay={
+              canSwipe
+                ? {
+                    delay: 3500,
+                    disableOnInteraction: true,
+                    pauseOnMouseEnter: true,
+                  }
+                : false
+            }
+            loop={stays.length > 3}
+            grabCursor={canSwipe}
+            allowTouchMove={canSwipe}
+            simulateTouch={canSwipe}
             className="!pb-12"
           >
             {stays.map((stay) => (
-              <SwiperSlide key={stay.id}>
+              <SwiperSlide key={stay.id} className="!h-auto">
                 <motion.div
-                  onClick={() => handleStayClick(stay.id)}
+                  onClick={() => {
+                    if (isDraggingRef.current) return;
+                    handleStayClick(stay.id);
+                  }}
                   whileHover={{ y: -8, scale: 1.02 }}
                   className="group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col"
                 >
@@ -207,48 +309,6 @@ export function DestinationStaysSection({ destinationSlug = "wayanad", destinati
               </SwiperSlide>
             ))}
           </Swiper>
-          {stays.length > 1 && (
-            <>
-              <button
-                type="button"
-                className="swiper-button-prev-dest-stays absolute left-0 md:left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white text-gray-800 p-2.5 md:p-3 rounded-full shadow-xl border border-gray-200 hover:border-[#E51A4B] hover:text-[#E51A4B] flex items-center justify-center"
-                aria-label="Previous"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="swiper-button-next-dest-stays absolute right-0 md:right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white text-gray-800 p-2.5 md:p-3 rounded-full shadow-xl border border-gray-200 hover:border-[#E51A4B] hover:text-[#E51A4B] flex items-center justify-center"
-                aria-label="Next"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </>
-          )}
-          <div className="text-center mt-3 hidden md:block">
-            <Link
-              href={discoverMoreUrl}
-              className="inline-flex items-center gap-1.5 text-sm text-[#E51A4B] font-medium hover:text-red-700 transition-colors"
-            >
-              Discover more stays in {destinationName}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Mobile only: Discover More - small, near cards */}
-        <div className="md:hidden mt-3 px-2">
-          <Link
-            href={discoverMoreUrl}
-            className="flex items-center justify-center gap-1.5 py-2.5 px-4 text-sm font-medium text-[#E51A4B] border border-[#E51A4B]/40 rounded-lg hover:bg-[#E51A4B]/5 active:scale-[0.98] transition-all"
-          >
-            Discover more stays in {destinationName}
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
         </div>
       </div>
 

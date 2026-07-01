@@ -1,8 +1,15 @@
 {
   "numbers": [
-    "+917066444430",
-    "+917902491042"
+    "+9190379179463",
+    "+917902491042",
+    "+918086538856",
+    "+9190379179467"
   ],
-  "description": "WhatsApp numbers for round-robin lead distribution. Add more numbers to this array to distribute leads evenly."
+  "stayCardNumbers": [
+    "+9190379179463",
+    "+918086538856",
+    "+9190379179467"
+  ],
+  "description": "WhatsApp numbers for round-robin lead distribution. stayCardNumbers is used for random assignment on stay card WhatsApp buttons."
 }
 

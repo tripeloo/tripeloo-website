@@ -68,9 +68,9 @@ export default function AdminDashboard() {
     { href: "/admin", label: "Home Page", icon: ImageIcon, color: "bg-blue-500" },
     { href: "/admin/destinations", label: "Destinations", icon: MapPin, color: "bg-green-500" },
     { href: "/admin/stays", label: "Stays", icon: Hotel, color: "bg-purple-500" },
-    { href: "/admin/things", label: "Things to Do", icon: Activity, color: "bg-orange-500" },
-    { href: "/admin/trips", label: "Food spots", icon: UtensilsCrossed, color: "bg-cyan-500" },
-    { href: "/admin/tour-packages", label: "Tour Packages", icon: Package, color: "bg-teal-500" },
+    // { href: "/admin/things", label: "Things to Do", icon: Activity, color: "bg-orange-500" },
+    // { href: "/admin/trips", label: "Food spots", icon: UtensilsCrossed, color: "bg-cyan-500" },
+    // { href: "/admin/tour-packages", label: "Tour Packages", icon: Package, color: "bg-teal-500" },
     { href: "/admin/reviews", label: "Reviews", icon: MessageSquare, color: "bg-pink-500" },
     { href: "/admin/loyalty-points", label: "Loyalty Points", icon: Gift, color: "bg-red-500" },
     { href: "/admin/leads", label: "Website Leads", icon: Users, color: "bg-indigo-500" },
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
             color="bg-purple-500/20 border-purple-500/50"
             iconColor="text-purple-400"
           />
-          <StatCard
+          {/* <StatCard
             label="Things to Do"
             value={stats.activities}
             icon={Activity}
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
             icon={Package}
             color="bg-teal-500/20 border-teal-500/50"
             iconColor="text-teal-400"
-          />
+          /> */}
           <StatCard
             label="Reviews"
             value={stats.reviews}
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
               >
                 + Add New Stay
               </Link>
-              <Link
+              {/* <Link
                 href="/admin/things/add"
                 className="block w-full bg-[#E51A4B] hover:bg-[#c91742] text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
               >
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
                 className="block w-full bg-[#E51A4B] hover:bg-[#c91742] text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
               >
                 + Add New Tour Package
-              </Link>
+              </Link> */}
             </div>
           </div>
 
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
               >
                 Manage Stays
               </Link>
-              <Link
+              {/* <Link
                 href="/admin/things/list"
                 className="block w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center border border-white/20"
               >
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                 className="block w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center border border-white/20"
               >
                 Manage Tour Packages
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

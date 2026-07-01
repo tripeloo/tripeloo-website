@@ -27,6 +27,7 @@ export async function findTripsByDestination(destinationSlugOrName: string): Pro
   return rows.map((r) => ({
     id: r._id?.toString() || r.id || '',
     name: r.name || '',
+    propertyName: r.propertyName || '',
     coverImage: r.coverImage || r.image || '',
     duration: r.duration || '',
     price: r.startingPrice || r.price || 0, // Use startingPrice from DB

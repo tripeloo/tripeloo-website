@@ -1,5 +1,22 @@
 import whatsappNumbers from '@/config/whatsapp-numbers.json';
 
+const STAY_CARD_NUMBERS =
+  (whatsappNumbers as { stayCardNumbers?: string[] }).stayCardNumbers?.length
+    ? (whatsappNumbers as { stayCardNumbers: string[] }).stayCardNumbers
+    : ['+9190379179463', '+918086538856', '+9190379179467'];
+
+/**
+ * Gets a random WhatsApp number for stay card booking buttons.
+ * @returns A randomly selected number from the stay card pool
+ */
+export function getRandomStayCardWhatsAppNumber(): string {
+  if (STAY_CARD_NUMBERS.length === 0) {
+    return '+9190379179463';
+  }
+  const index = Math.floor(Math.random() * STAY_CARD_NUMBERS.length);
+  return STAY_CARD_NUMBERS[index];
+}
+
 /**
  * Gets the next WhatsApp number using round-robin logic
  * Uses localStorage to track the current index
@@ -8,12 +25,12 @@ import whatsappNumbers from '@/config/whatsapp-numbers.json';
 export function getNextWhatsAppNumber(): string {
   if (typeof window === 'undefined') {
     // Server-side: return first number as fallback
-    return whatsappNumbers.numbers[0] || '+917066444430';
+    return whatsappNumbers.numbers[0] || '+9190379179463';
   }
 
   const numbers = whatsappNumbers.numbers;
   if (numbers.length === 0) {
-    return '+917066444430'; // Fallback
+    return '+9190379179463'; // Fallback
   }
 
   // Get current index from localStorage, default to 0
@@ -44,6 +61,6 @@ export function formatWhatsAppNumber(phoneNumber: string): string {
  * @returns The primary WhatsApp number
  */
 export function getPrimaryWhatsAppNumber(): string {
-  return '+917066444430';
+  return '+9190379179463';
 }
 

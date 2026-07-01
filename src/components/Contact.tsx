@@ -13,7 +13,7 @@ const contactInfo = [
     id: 2,
     icon: <Phone className="text-green-500 w-8 h-8 mt-1" />,
     title: "Call Us",
-    details: ["7066444430"],
+    details: ["90379179463"],
   },
   {
     id: 3,

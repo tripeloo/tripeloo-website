@@ -124,7 +124,7 @@ export function Header() {
 
           {/* Call Assistance - Desktop */}
           <a
-            href="tel:7066444430"
+            href="tel:90379179463"
             className="hidden md:inline-flex items-center gap-2 rounded-full border border-gray-300 text-gray-900 hover:bg-gray-50 px-4 py-2 text-sm font-semibold transition"
           >
             <Phone size={16} />
@@ -133,7 +133,7 @@ export function Header() {
           
           {/* Call Icon - Mobile */}
           <a
-            href="tel:7066444430"
+            href="tel:90379179463"
             className="md:hidden text-gray-900 hover:text-[#E51A4B] transition-colors p-2"
             aria-label="Call Assistance"
           >
@@ -221,7 +221,7 @@ export function Header() {
             </nav>
             <div className="p-4 border-t border-gray-100 space-y-3">
               <a
-                href="tel:7066444430"
+                href="tel:90379179463"
                 className="flex items-center justify-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition"
                 onClick={closeMenu}
               >
@@ -320,7 +320,7 @@ export function Header() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Select Category
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <button
                     onClick={() => setSelectedCategory('stays')}
                     className={`px-4 py-3 rounded-lg border-2 text-sm font-semibold transition ${
@@ -331,6 +331,7 @@ export function Header() {
                   >
                     Stays
                   </button>
+                  {/* Things to Do — commented out, stays only
                   <button
                     onClick={() => setSelectedCategory('things-to-do')}
                     className={`px-4 py-3 rounded-lg border-2 text-sm font-semibold transition ${
@@ -341,6 +342,7 @@ export function Header() {
                   >
                     Things to Do
                   </button>
+                  Food spots — commented out
                   <button
                     onClick={() => setSelectedCategory('restaurants-cafes')}
                     className={`px-4 py-3 rounded-lg border-2 text-sm font-semibold transition ${
@@ -351,6 +353,7 @@ export function Header() {
                   >
                     Food spots
                   </button>
+                  */}
                 </div>
               </div>
 
