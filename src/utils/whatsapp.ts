@@ -3,7 +3,7 @@ import whatsappNumbers from '@/config/whatsapp-numbers.json';
 const STAY_CARD_NUMBERS =
   (whatsappNumbers as { stayCardNumbers?: string[] }).stayCardNumbers?.length
     ? (whatsappNumbers as { stayCardNumbers: string[] }).stayCardNumbers
-    : ['+9190379179463', '+918086538856', '+9190379179467'];
+    : ['+9190379179463', '+918086538856', '+9190379179466'];
 
 /**
  * Gets a random WhatsApp number for stay card booking buttons.
