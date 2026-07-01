@@ -161,7 +161,7 @@ Please confirm availability and total price.`;
 
   const handleCall = () => {
     // For direct calls, use the primary number
-    window.open("tel:+917066444430");
+    window.open("tel:+9190379179463");
   };
 
   const handleEmailInquiryClick = (e: React.MouseEvent) => {

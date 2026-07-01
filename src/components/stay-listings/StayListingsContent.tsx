@@ -23,8 +23,11 @@ import {
 } from "react-icons/fa";
 
 import { stayData, activitiesData, tripsData, type Stay, type Activity, type Trip } from "./DestinationData";
+import { LeadFormPopup } from "@/components/LeadFormPopup";
+import { StayCardActions } from "@/components/StayCardActions";
 
-const tabData = ["Stays", "Things to Do", "Food spots", "Tour packages"];
+// const tabData = ["Stays", "Things to Do", "Food spots", "Tour packages"];
+const tabData = ["Stays"];
 
 // Helper function to map category based on item data
 const mapCategory = (item: any, type: 'stay' | 'activity' | 'trip'): string => {
@@ -75,9 +78,10 @@ function StayListingsContent() {
   
   // Map category query param to tab name
   const getDefaultTab = () => {
-    if (categoryParam === "things-to-do") return "Things to Do";
-    if (categoryParam === "getaways" || categoryParam === "restaurants-cafes") return "Food spots";
-    return "Stays"; // default
+    // Things to Do, Food spots, Tour packages — commented out, stays only
+    // if (categoryParam === "things-to-do") return "Things to Do";
+    // if (categoryParam === "getaways" || categoryParam === "restaurants-cafes") return "Food spots";
+    return "Stays";
   };
   
   const [isVisible, setIsVisible] = useState(false);
@@ -90,6 +94,8 @@ function StayListingsContent() {
   const [activities, setActivities] = useState<Activity[] | null>(null);
   const [trips, setTrips] = useState<Trip[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLeadPopup, setShowLeadPopup] = useState(false);
+  const [leadPopupStay, setLeadPopupStay] = useState<Stay | null>(null);
 
   useEffect(() => setIsVisible(true), []);
 
@@ -100,19 +106,14 @@ function StayListingsContent() {
     }
   }, [rawDestination, router]);
 
-  // Update active tab when category query param changes; redirect to tour-packages if that category
+  // Update active tab when category query param changes — stays only
   useEffect(() => {
-    if (categoryParam === "tour-packages" && rawDestination) {
-      router.push(`/tour-packages?destination=${encodeURIComponent(rawDestination)}`);
-      return;
-    }
-    if (categoryParam === "things-to-do") {
-      setActiveTab("Things to Do");
-    } else if (categoryParam === "getaways" || categoryParam === "restaurants-cafes") {
-      setActiveTab("Food spots");
-    } else if (categoryParam === "stays") {
-      setActiveTab("Stays");
-    }
+    // Tour packages redirect — commented out
+    // if (categoryParam === "tour-packages" && rawDestination) {
+    //   router.push(`/tour-packages?destination=${encodeURIComponent(rawDestination)}`);
+    //   return;
+    // }
+    setActiveTab("Stays");
   }, [categoryParam, rawDestination, router]);
 
   // Fetch data from API
@@ -149,57 +150,9 @@ function StayListingsContent() {
         setStays(matchedKey ? stayData[matchedKey] : null);
       }
 
-      try {
-        // Fetch activities
-        const activitiesRes = await fetch(`/api/activities?destination=${encodeURIComponent(destinationSlug)}`);
-        if (activitiesRes.ok) {
-          const activitiesResponse = await activitiesRes.json();
-          const mappedActivities = activitiesResponse.data.map((activity: any) => ({
-            ...activity,
-            category: mapCategory(activity, 'activity'),
-          }));
-          setActivities(mappedActivities.length > 0 ? mappedActivities : null);
-        } else {
-          // Fallback to hardcoded data
-          const matchedKey = Object.keys(activitiesData).find((key) =>
-            destinationSlug.includes(key.toLowerCase())
-          );
-          setActivities(matchedKey ? activitiesData[matchedKey] : null);
-        }
-      } catch (error) {
-        console.error('Error fetching activities:', error);
-        // Fallback to hardcoded data
-        const matchedKey = Object.keys(activitiesData).find((key) =>
-          destinationSlug.includes(key.toLowerCase())
-        );
-        setActivities(matchedKey ? activitiesData[matchedKey] : null);
-      }
-
-      try {
-        // Fetch trips
-        const tripsRes = await fetch(`/api/trips?destination=${encodeURIComponent(destinationSlug)}`);
-        if (tripsRes.ok) {
-          const tripsResponse = await tripsRes.json();
-          const mappedTrips = tripsResponse.data.map((trip: any) => ({
-            ...trip,
-            category: mapCategory(trip, 'trip'),
-          }));
-          setTrips(mappedTrips.length > 0 ? mappedTrips : null);
-        } else {
-          // Fallback to hardcoded data
-          const matchedKey = Object.keys(tripsData).find((key) =>
-            destinationSlug.includes(key.toLowerCase())
-          );
-          setTrips(matchedKey ? tripsData[matchedKey] : null);
-        }
-      } catch (error) {
-        console.error('Error fetching trips:', error);
-        // Fallback to hardcoded data
-        const matchedKey = Object.keys(tripsData).find((key) =>
-          destinationSlug.includes(key.toLowerCase())
-        );
-        setTrips(matchedKey ? tripsData[matchedKey] : null);
-      }
+      // Fetch activities & trips — commented out, stays only
+      setActivities(null);
+      setTrips(null);
       
       setLoading(false);
     };
@@ -762,7 +715,7 @@ function StayListingsContent() {
           </>
         )}
 
-        {/* Tabs - 2x2 grid on mobile to prevent overflow, row on md+ */}
+        {/* Tabs — commented out, stays only (single tab hidden)
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
@@ -770,33 +723,10 @@ function StayListingsContent() {
           className="grid grid-cols-2 md:flex gap-2 md:gap-3 mb-8 md:mb-10 bg-white/80 backdrop-blur-sm p-1.5 md:p-2 rounded-2xl md:rounded-full shadow-lg max-w-2xl mx-auto"
         >
           {tabData.map((tab) => (
-            <motion.button
-              key={tab}
-              onClick={() => {
-                if (tab === "Tour packages") {
-                  router.push(`/tour-packages?destination=${encodeURIComponent(rawDestination || "")}`);
-                  return;
-                }
-                setActiveTab(tab);
-              }}
-              className={`relative flex-1 min-w-0 px-3 py-2.5 md:px-6 md:py-3 text-xs md:text-sm lg:text-base font-semibold rounded-xl md:rounded-full transition-all whitespace-nowrap ${
-                activeTab === tab
-                  ? "text-white"
-                  : "text-gray-700 hover:text-[#E51A4B]"
-              }`}
-              whileTap={{ scale: 0.95 }}
-            >
-              {activeTab === tab && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-[#E51A4B] to-[#FF6B6B] rounded-xl md:rounded-full"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10 truncate block text-center">{tab}</span>
-            </motion.button>
+            ...
           ))}
         </motion.div>
+        */}
 
         {/* Heading */}
         <motion.h1
@@ -805,11 +735,12 @@ function StayListingsContent() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-center mb-6 sm:mb-8 md:mb-12 px-2 bg-gradient-to-r from-[#E51A4B] to-[#FF6B6B] bg-clip-text text-transparent capitalize font-display"
         >
-          {activeTab === "Stays" && `Stays in ${decodedDestination}`}
-          {activeTab === "Things to Do" &&
-            `Things to Do in ${decodedDestination}`}
+          {`Stays in ${decodedDestination}`}
+          {/* Things to Do, Food spots, Tour packages headings — commented out
+          {activeTab === "Things to Do" && `Things to Do in ${decodedDestination}`}
           {activeTab === "Food spots" && `Food spots in ${decodedDestination}`}
           {activeTab === "Tour packages" && `Tour packages in ${decodedDestination}`}
+          */}
         </motion.h1>
 
         {/* No results message */}
@@ -859,7 +790,7 @@ function StayListingsContent() {
               support team.
             </p>
             <motion.a
-              href="https://wa.me/917066444430"
+              href="https://wa.me/9190379179463"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
@@ -915,14 +846,27 @@ function StayListingsContent() {
                       </li>
                     ))}
                   </ul>
+                  <StayCardActions
+                    stayName={stay.name}
+                    location={decodedDestination}
+                    onFormClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setLeadPopupStay(stay);
+                      setShowLeadPopup(true);
+                    }}
+                  />
                 </div>
               </motion.div>
             ))}
           </div>
         )}
 
+        {/* Things to Do, Food spots sections — commented out, stays only */}
+        {false && (
+        <>
         {/* No results message for Things to Do */}
-        {activeTab === "Things to Do" && activities && activities.length > 0 && !hasActivities && (
+        {activeTab === "Things to Do" && (activities?.length ?? 0) > 0 && !hasActivities && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -952,7 +896,7 @@ function StayListingsContent() {
         )}
 
         {/* No Things to Do available */}
-        {!hasActivities && activeTab === "Things to Do" && (!activities || activities.length === 0) && (
+        {!hasActivities && activeTab === "Things to Do" && !(activities?.length) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -968,7 +912,7 @@ function StayListingsContent() {
               recommendations, contact our support team.
             </p>
             <motion.a
-              href="https://wa.me/917066444430"
+              href="https://wa.me/9190379179463"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
@@ -1026,7 +970,7 @@ function StayListingsContent() {
         )}
 
         {/* No results message for Food spots */}
-        {activeTab === "Food spots" && trips && trips.length > 0 && !hasTrips && (
+        {activeTab === "Food spots" && (trips?.length ?? 0) > 0 && !hasTrips && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -1056,7 +1000,7 @@ function StayListingsContent() {
         )}
 
         {/* No Food spots available */}
-        {!hasTrips && activeTab === "Food spots" && (!trips || trips.length === 0) && (
+        {!hasTrips && activeTab === "Food spots" && !(trips?.length) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -1072,7 +1016,7 @@ function StayListingsContent() {
               planning, reach out to our support team.
             </p>
             <motion.a
-              href="https://wa.me/917066444430"
+              href="https://wa.me/9190379179463"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
@@ -1128,7 +1072,29 @@ function StayListingsContent() {
             ))}
           </div>
         )}
+        </>
+        )}
       </div>
+
+      <LeadFormPopup
+        isOpen={showLeadPopup}
+        onClose={() => {
+          setShowLeadPopup(false);
+          setLeadPopupStay(null);
+        }}
+        onSkip={() => {
+          setShowLeadPopup(false);
+          setLeadPopupStay(null);
+        }}
+        itemName={leadPopupStay?.name}
+        itemType="stay"
+        itemPrice={
+          leadPopupStay?.startingPrice != null && leadPopupStay.startingPrice > 0
+            ? `₹${leadPopupStay.startingPrice.toLocaleString()}/ night`
+            : undefined
+        }
+        itemDestination={decodedDestination}
+      />
     </div>
   );
 }

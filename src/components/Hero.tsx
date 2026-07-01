@@ -223,21 +223,21 @@ export function Hero({ banners = [] }: HeroProps) {
         })
         .catch(() => {});
 
-    // Fetch activities (things to do) - using admin endpoint to get all
-    fetch('/api/admin/activities?includeHidden=false')
-      .then(res => res.json())
-      .then(data => {
-        setActivities(data.data || []);
-      })
-      .catch(() => {});
+    // Fetch activities (things to do) - commented out, stays only
+    // fetch('/api/admin/activities?includeHidden=false')
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     setActivities(data.data || []);
+    //   })
+    //   .catch(() => {});
 
-    // Fetch trips (restaurants & cafes) - using admin endpoint to get all
-    fetch('/api/admin/trips?includeHidden=false')
-      .then(res => res.json())
-      .then(data => {
-        setTrips(data.data || []);
-      })
-      .catch(() => {});
+    // Fetch trips (restaurants & cafes) - commented out, stays only
+    // fetch('/api/admin/trips?includeHidden=false')
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     setTrips(data.data || []);
+    //   })
+    //   .catch(() => {});
 
     // Fetch stays - using admin endpoint to get all
     fetch('/api/admin/stays?includeHidden=false')
@@ -388,7 +388,7 @@ export function Hero({ banners = [] }: HeroProps) {
   }, [isMobile]);
 
   return (
-    <section className="relative bg-gradient-to-br from-white via-blue-50/30 to-pink-50/30 min-h-0 sm:min-h-screen" style={{ willChange: 'auto', transform: 'translateZ(0)' }}>
+    <section className="relative bg-gradient-to-br from-white via-blue-50/30 to-pink-50/30 min-h-0" style={{ willChange: 'auto', transform: 'translateZ(0)' }}>
       {/* Simplified Static Background - subtle on mobile to avoid fogged look */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ willChange: 'auto' }}>
         {/* Static gradient orbs - reduced on mobile */}
@@ -397,7 +397,116 @@ export function Hero({ banners = [] }: HeroProps) {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 pt-28 sm:pt-32 md:pt-36 pb-0 sm:pb-8 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 pt-20 sm:pt-24 md:pt-28 pb-2 sm:pb-3 px-4 sm:px-6 lg:px-8">
+        {/* Search destination — top of home, directly under nav */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="max-w-4xl mx-auto mb-0"
+          ref={searchContainerRef}
+        >
+          <div className="relative z-50">
+            {/* Mobile backdrop overlay */}
+            {isMobile && isInputFocused && showSearchDropdown && (
+              <div 
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[98]"
+                onClick={() => {
+                  setIsInputFocused(false);
+                  setShowSearchDropdown(false);
+                  searchInputRef.current?.blur();
+                }}
+              />
+            )}
+            
+            <div className="flex items-center bg-white rounded-full border-2 border-gray-200 focus-within:border-[#E51A4B] transition-all shadow-lg relative z-[99]">
+              <div className="pl-4 sm:pl-6">
+                <Search className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+              </div>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => {
+                  setTimeout(() => {
+                    if (!dropdownRef.current?.matches(':hover')) {
+                      setIsInputFocused(false);
+                    }
+                  }, 200);
+                }}
+                placeholder="Search destination..."
+                className="flex-1 px-4 sm:px-6 py-3.5 sm:py-4 bg-transparent border-none outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400"
+              />
+            </div>
+
+            {/* Search Dropdown */}
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div 
+                ref={dropdownRef}
+                className={`absolute top-full left-0 right-0 mt-2 z-[100] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden ${
+                  isMobile && isInputFocused 
+                    ? 'max-h-[calc(100vh-220px)]' 
+                    : 'max-h-80'
+                }`}
+                onMouseEnter={() => {
+                  if (!isMobile) {
+                    setIsInputFocused(true);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (!isMobile) {
+                    setIsInputFocused(false);
+                  }
+                }}
+              >
+                <div className="overflow-y-auto max-h-full custom-scrollbar-thin">
+                  {searchResults.map((result, index) => {
+                    const getTypeLabel = () => 'Destination';
+                    const getTypeColor = () => 'bg-blue-100 text-blue-700';
+
+                    return (
+                      <button
+                        key={`${result.type}-${result.id}-${index}`}
+                        onClick={() => handleSearchResultSelect(result)}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                        }}
+                        className="w-full text-left px-4 py-3 sm:py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 flex items-center gap-2 sm:gap-3 group"
+                      >
+                        <span className={`px-2 py-1 rounded-md text-xs font-semibold flex-shrink-0 ${getTypeColor()}`}>
+                          {getTypeLabel()}
+                        </span>
+                        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                          <span className="text-gray-900 font-medium text-sm sm:text-base truncate group-hover:text-[#E51A4B] transition-colors">
+                            {result.name}
+                          </span>
+                          <span className="text-xs text-gray-500 flex-shrink-0 sm:ml-auto whitespace-nowrap">
+                            Explore stays
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  
+                  {isMobile && searchQuery.trim() && (
+                    <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-200 text-center sticky bottom-0">
+                      <span className="text-xs text-gray-600">
+                        Showing top {searchResults.length} results
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Where next, Stays tab, destination dropdown & hero banners — commented out, search only */}
+        {false && (
+        <>
         {/* Heading */}
         <div className="text-center mb-6 sm:mb-10 relative">
           {/* Static background glow - no animation */}
@@ -421,7 +530,8 @@ export function Hero({ banners = [] }: HeroProps) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-6 sm:mb-8 w-full max-w-full px-1"
         >
-          <div className="grid grid-cols-2 md:flex md:flex-wrap md:justify-center gap-2 md:gap-3 lg:gap-4 max-w-lg md:max-w-none mx-auto">
+          <div className="grid grid-cols-1 md:flex md:flex-wrap md:justify-center gap-2 md:gap-3 lg:gap-4 max-w-lg md:max-w-none mx-auto">
+            {/* Tour packages, Things to Do, Food spots — commented out, stays only
             <button
               onClick={() => handleTabClick('tour-packages')}
               className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold text-xs sm:text-base transition-all ${
@@ -433,6 +543,7 @@ export function Hero({ banners = [] }: HeroProps) {
               <Package className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span className="truncate">Tour packages</span>
             </button>
+            */}
             <button
               onClick={() => handleTabClick('stays')}
               className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold text-xs sm:text-base transition-all ${
@@ -444,6 +555,7 @@ export function Hero({ banners = [] }: HeroProps) {
               <Bed className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span>Stays</span>
             </button>
+            {/* Things to Do — commented out
             <button
               onClick={() => handleTabClick('things-to-do')}
               className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold text-xs sm:text-base transition-all ${
@@ -455,6 +567,7 @@ export function Hero({ banners = [] }: HeroProps) {
               <Camera className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span className="truncate">Things to Do</span>
             </button>
+            Food spots — commented out
             <button
               onClick={() => handleTabClick('restaurants-cafes')}
               className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold text-xs sm:text-base transition-all ${
@@ -466,6 +579,7 @@ export function Hero({ banners = [] }: HeroProps) {
               <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span>Food spots</span>
             </button>
+            */}
           </div>
         </motion.div>
 
@@ -479,7 +593,7 @@ export function Hero({ banners = [] }: HeroProps) {
             className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6 sm:mb-8"
           >
             <span className="text-sm font-medium text-gray-700 shrink-0">
-              Choose destination for {selectedCategory === 'tour-packages' ? 'tour packages' : selectedCategory === 'stays' ? 'stays' : selectedCategory === 'things-to-do' ? 'things to do' : 'food spots'}:
+              Choose destination for stays:
             </span>
             <div className="relative w-full sm:w-auto min-w-[200px] max-w-xs">
               <select
@@ -513,117 +627,6 @@ export function Hero({ banners = [] }: HeroProps) {
             </button>
           </motion.div>
         )}
-
-        {/* Big Search Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="max-w-4xl mx-auto mb-6 sm:mb-12"
-          ref={searchContainerRef}
-        >
-          <div className="relative z-50">
-            {/* Mobile backdrop overlay */}
-            {isMobile && isInputFocused && showSearchDropdown && (
-              <div 
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[98]"
-                onClick={() => {
-                  setIsInputFocused(false);
-                  setShowSearchDropdown(false);
-                  searchInputRef.current?.blur();
-                }}
-              />
-            )}
-            
-            <div className="flex items-center bg-gray-50 rounded-full border-2 border-gray-200 focus-within:border-[#E51A4B] transition-all shadow-lg relative z-[99]">
-              <div className="pl-4 sm:pl-6">
-                <Search className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-              </div>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => {
-                  // Delay blur to allow click events on dropdown items
-                  setTimeout(() => {
-                    if (!dropdownRef.current?.matches(':hover')) {
-                      setIsInputFocused(false);
-                    }
-                  }, 200);
-                }}
-                placeholder="Search destination..."
-                className="flex-1 px-4 sm:px-6 py-4 sm:py-5 bg-transparent border-none outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400"
-              />
-            </div>
-
-            {/* Search Dropdown */}
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div 
-                ref={dropdownRef}
-                className={`absolute top-full left-0 right-0 mt-2 z-[100] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden ${
-                  isMobile && isInputFocused 
-                    ? 'max-h-[calc(100vh-220px)]' 
-                    : 'max-h-80'
-                }`}
-                onMouseEnter={() => {
-                  if (!isMobile) {
-                    setIsInputFocused(true);
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (!isMobile) {
-                    setIsInputFocused(false);
-                  }
-                }}
-              >
-                {/* Scrollable container */}
-                <div className="overflow-y-auto max-h-full custom-scrollbar-thin">
-                  {searchResults.map((result, index) => {
-                    // Only destinations are shown, so simplify the labels
-                    const getTypeLabel = () => 'Destination';
-                    const getTypeColor = () => 'bg-blue-100 text-blue-700';
-
-                    return (
-                      <button
-                        key={`${result.type}-${result.id}-${index}`}
-                        onClick={() => handleSearchResultSelect(result)}
-                        onMouseDown={(e) => {
-                          // Prevent input blur on mobile
-                          e.preventDefault();
-                        }}
-                        className="w-full text-left px-4 py-3 sm:py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 flex items-center gap-2 sm:gap-3 group"
-                      >
-                        <span className={`px-2 py-1 rounded-md text-xs font-semibold flex-shrink-0 ${getTypeColor()}`}>
-                          {getTypeLabel()}
-                        </span>
-                        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
-                          <span className="text-gray-900 font-medium text-sm sm:text-base truncate group-hover:text-[#E51A4B] transition-colors">
-                            {result.name}
-                          </span>
-                          <span className="text-xs text-gray-500 flex-shrink-0 sm:ml-auto whitespace-nowrap">
-                            Explore stays, things to do, food spots
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                  
-                  {/* Show more indicator on mobile */}
-                  {isMobile && searchQuery.trim() && (
-                    <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-200 text-center sticky bottom-0">
-                      <span className="text-xs text-gray-600">
-                        Showing top {searchResults.length} results
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
 
         {/* Dynamic Banner Carousel */}
         {displayBanners && displayBanners.length > 0 && (
@@ -827,6 +830,8 @@ export function Hero({ banners = [] }: HeroProps) {
               </div>
             </div>
           </motion.div>
+        )}
+        </>
         )}
       </div>
 

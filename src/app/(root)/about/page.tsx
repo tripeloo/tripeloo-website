@@ -174,7 +174,7 @@ const About = () => {
               <div>
                 <p className="font-semibold mb-2">Contact</p>
                 <p className="text-white/90">
-                  <a href="tel:7066444430" className="hover:underline">7066444430</a>
+                  <a href="tel:90379179463" className="hover:underline">90379179463</a>
                 </p>
                 <p className="text-white/90">
                   <a href="mailto:support@tripeloo.com" className="hover:underline">support@tripeloo.com</a>

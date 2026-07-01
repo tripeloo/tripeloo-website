@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Bed, Camera, UtensilsCrossed, ArrowRight } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/utils/cloudinary';
+import { LeadFormPopup } from '@/components/LeadFormPopup';
+import { StayCardActions } from '@/components/StayCardActions';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -22,17 +24,19 @@ interface MixedCard {
 type FilterTag = 'all' | 'stay' | 'activity' | 'trip';
 
 const FILTER_TAGS: { value: FilterTag; label: string }[] = [
-  { value: 'all', label: 'All' },
   { value: 'stay', label: 'Stays' },
-  { value: 'activity', label: 'Things to do' },
-  { value: 'trip', label: 'Food spots' },
+  // { value: 'all', label: 'All' },
+  // { value: 'activity', label: 'Things to do' },
+  // { value: 'trip', label: 'Food spots' },
 ];
 
 export function MixedCardsCarousel() {
   const router = useRouter();
   const [cards, setCards] = useState<MixedCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTag, setActiveTag] = useState<FilterTag>('all');
+  const [activeTag, setActiveTag] = useState<FilterTag>('stay');
+  const [showLeadPopup, setShowLeadPopup] = useState(false);
+  const [leadPopupStay, setLeadPopupStay] = useState<MixedCard | null>(null);
 
   useEffect(() => {
     fetchMixedCards();
@@ -40,16 +44,16 @@ export function MixedCardsCarousel() {
 
   const fetchMixedCards = async () => {
     try {
-      // Fetch all three types in parallel
-      const [staysRes, activitiesRes, tripsRes] = await Promise.all([
+      // Stays only — activities & food spots fetch commented out
+      const [staysRes] = await Promise.all([
         fetch('/api/admin/stays?includeHidden=false'),
-        fetch('/api/admin/activities?includeHidden=false'),
-        fetch('/api/admin/trips?includeHidden=false'),
+        // fetch('/api/admin/activities?includeHidden=false'),
+        // fetch('/api/admin/trips?includeHidden=false'),
       ]);
 
       const staysData = await staysRes.json();
-      const activitiesData = await activitiesRes.json();
-      const tripsData = await tripsRes.json();
+      // const activitiesData = await activitiesRes.json();
+      // const tripsData = await tripsRes.json();
 
       // Map and combine all items
       const allCards: MixedCard[] = [];
@@ -68,33 +72,15 @@ export function MixedCardsCarousel() {
         });
       }
 
-      // Add activities (things to do)
-      if (activitiesData.data && Array.isArray(activitiesData.data)) {
-        activitiesData.data.slice(0, 10).forEach((activity: any) => {
-          allCards.push({
-            id: activity._id?.toString() || activity.id,
-            name: activity.name || '',
-            coverImage: activity.coverImage || '',
-            price: activity.startingPrice || 0,
-            type: 'activity',
-            destination: activity.destinationSlug,
-          });
-        });
-      }
+      // Add activities (things to do) — commented out
+      // if (activitiesData.data && Array.isArray(activitiesData.data)) {
+      //   activitiesData.data.slice(0, 10).forEach((activity: any) => { ... });
+      // }
 
-      // Add trips (restaurants & cafes)
-      if (tripsData.data && Array.isArray(tripsData.data)) {
-        tripsData.data.slice(0, 10).forEach((trip: any) => {
-          allCards.push({
-            id: trip._id?.toString() || trip.id,
-            name: trip.name || '',
-            coverImage: trip.coverImage || '',
-            price: trip.startingPrice || 0,
-            type: 'trip',
-            destination: trip.destinationSlug,
-          });
-        });
-      }
+      // Add trips (restaurants & cafes) — commented out
+      // if (tripsData.data && Array.isArray(tripsData.data)) {
+      //   tripsData.data.slice(0, 10).forEach((trip: any) => { ... });
+      // }
 
       // Shuffle the array randomly
       const shuffled = allCards.sort(() => Math.random() - 0.5);
@@ -108,6 +94,14 @@ export function MixedCardsCarousel() {
     }
   };
 
+  const formatDestinationName = (slug?: string) => {
+    if (!slug) return '';
+    return slug
+      .split(/[-_\s]+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const handleCardClick = (card: MixedCard) => {
     const destinationName = card.destination || '';
     
@@ -119,23 +113,10 @@ export function MixedCardsCarousel() {
         queryParams.set('destination', destinationName);
       }
       router.push(`/item-details?${queryParams.toString()}`);
-    } else if (card.type === 'activity') {
-      const queryParams = new URLSearchParams({
-        'things-to-do': card.id,
-      });
-      if (destinationName) {
-        queryParams.set('destination', destinationName);
-      }
-      router.push(`/things-to-do?${queryParams.toString()}`);
-    } else if (card.type === 'trip') {
-      const queryParams = new URLSearchParams({
-        trips: card.id,
-      });
-      if (destinationName) {
-        queryParams.set('destination', destinationName);
-      }
-      router.push(`/trips?${queryParams.toString()}`);
     }
+    // Activities & food spots — commented out, stays only
+    // else if (card.type === 'activity') { ... }
+    // else if (card.type === 'trip') { ... }
   };
 
   const getTypeIcon = (type: string) => {
@@ -211,7 +192,7 @@ export function MixedCardsCarousel() {
             Experience the Exceptional
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
-            Explore stays, things to do, food spots
+            Explore stays
           </p>
 
           {/* Clickable filter tags */}
@@ -329,6 +310,19 @@ export function MixedCardsCarousel() {
                         <ArrowRight className="w-5 h-5" />
                       </motion.div>
                     </div>
+
+                    {card.type === 'stay' && (
+                      <StayCardActions
+                        stayName={card.name}
+                        location={formatDestinationName(card.destination)}
+                        onFormClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setLeadPopupStay(card);
+                          setShowLeadPopup(true);
+                        }}
+                      />
+                    )}
                   </div>
                 </motion.div>
               </SwiperSlide>
@@ -364,6 +358,26 @@ export function MixedCardsCarousel() {
           )}
         </div>
       </div>
+
+      <LeadFormPopup
+        isOpen={showLeadPopup}
+        onClose={() => {
+          setShowLeadPopup(false);
+          setLeadPopupStay(null);
+        }}
+        onSkip={() => {
+          setShowLeadPopup(false);
+          setLeadPopupStay(null);
+        }}
+        itemName={leadPopupStay?.name}
+        itemType="stay"
+        itemPrice={
+          leadPopupStay?.price != null && leadPopupStay.price > 0
+            ? `₹${leadPopupStay.price.toLocaleString()}/ night`
+            : undefined
+        }
+        itemDestination={formatDestinationName(leadPopupStay?.destination)}
+      />
     </section>
   );
 }

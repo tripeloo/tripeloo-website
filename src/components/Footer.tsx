@@ -23,7 +23,8 @@ export function Footer() {
               height={50}
               className="h-10 sm:h-12 w-auto mb-2"
             />
-            <p className="mt-2 text-sm text-gray-600">India's travel platform for stays, activities, and curated trips.</p>
+            <p className="mt-2 text-sm text-gray-600">India&apos;s travel platform for stays.</p>
+            {/* Was: stays, activities, and curated trips */}
           </div>
           <div>
             <div className="font-semibold">Quick Links</div>
@@ -37,7 +38,7 @@ export function Footer() {
             <ul className="mt-2 space-y-1 text-sm">
               <li><a className="hover:text-brand" href="https://www.instagram.com/tripeloo/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
               <li><a className="hover:text-brand" href="https://www.facebook.com/tripeloo" target="_blank" rel="noopener noreferrer">Facebook</a></li>
-              <li><a className="hover:text-brand" href="https://wa.me/917066444430" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+              <li><a className="hover:text-brand" href="https://wa.me/9190379179463" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
             </ul>
           </div>
           <div>
@@ -49,7 +50,7 @@ export function Footer() {
               </li>
               <li>
                 <span className="font-medium">Phone:</span>{' '}
-                <a className="hover:text-brand underline underline-offset-2" href="tel:7066444430">7066444430</a>
+                <a className="hover:text-brand underline underline-offset-2" href="tel:90379179463">90379179463</a>
               </li>
               <li className="mt-2">
                 <span className="font-medium">Address:</span>

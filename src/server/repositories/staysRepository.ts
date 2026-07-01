@@ -1,32 +1,30 @@
 import { getDb } from '@/server/db/client';
 import type { Stay } from '@/components/stay-listings/DestinationData';
+import { getStaySlugVariants } from '@/config/destination-stay-slugs';
 
 const COLLECTION = 'stays';
 
 export async function findStaysByDestination(destinationSlugOrName: string): Promise<Stay[]> {
   const db = await getDb();
-  const normalized = destinationSlugOrName.toLowerCase().trim();
-  
-  // Query with case-insensitive match for destinationSlug and exclude hidden items
+  const slugVariants = getStaySlugVariants(destinationSlugOrName);
+
   const rows = await db.collection<any>(COLLECTION)
     .find({
       $and: [
         {
-          $or: [
-            { destinationSlug: { $regex: new RegExp(`^${normalized}$`, 'i') } },
-            { destinationSlug: normalized },
-            // Also try matching if destinationSlug contains the normalized value
-            { destinationSlug: { $regex: new RegExp(normalized, 'i') } }
-          ]
+          destinationSlug: {
+            $in: slugVariants.map((slug) => new RegExp(`^${slug}$`, 'i')),
+          },
         },
-        { isHidden: { $ne: true } }
-      ]
+        { isHidden: { $ne: true } },
+      ],
     })
     .toArray();
   
   return rows.map((r) => ({
     id: r._id?.toString() || r.id || '',
     name: r.name || '',
+    propertyName: r.propertyName || '',
     coverImage: r.coverImage || r.image || '',
     startingPrice: r.startingPrice || r.price || 0,
     highlights: r.highlights || [],
@@ -99,6 +97,7 @@ function mapStayData(stay: any): any {
   return {
     id: stay._id?.toString() || stay.id || '',
     name: stay.name || '',
+    propertyName: stay.propertyName || '',
     destinationSlug: stay.destinationSlug || '',
     category: stay.category || '',
     coverImage: stay.coverImage || '',

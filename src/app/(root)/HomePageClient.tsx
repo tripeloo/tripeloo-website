@@ -2,12 +2,11 @@
 
 import { Hero } from '@/components/Hero';
 import { FeaturedDestinations } from '@/components/FeaturedDestinations';
-import { AboutBand } from '@/components/AboutBand';
+import { HomeStaysByDestination } from '@/components/HomeStaysByDestination';
 import OurSpecialities from '@/components/OurSpecialities';
 import StatisticsSection from '@/components/StatisticsSection';
 import TestimonialsCarousel from '@/components/TestimonialsCarousel';
 import { MixedCardsCarousel } from '@/components/MixedCardsCarousel';
-import { DestinationStaysSection } from '@/components/DestinationStaysSection';
 import { useEffect, useState } from 'react';
 
 interface HomePageData {
@@ -70,16 +69,14 @@ export default function HomePageClient() {
         banners={homeData?.heroBanners}
       />
       <FeaturedDestinations />
+      <HomeStaysByDestination />
       <MixedCardsCarousel />
       <StatisticsSection />
-      <DestinationStaysSection />
       <OurSpecialities />
-      <DestinationStaysSection destinationSlug="munnar" destinationName="Munnar" />
       <TestimonialsCarousel 
         heading={homeData?.testimonialsHeading}
         testimonials={homeData?.testimonials}
       />
-      <DestinationStaysSection destinationSlug="kodaikanal" destinationName="Kodaikanal" />
     </>
   );
 }

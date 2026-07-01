@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
             <p><strong>Effective Date:</strong> January 2025</p>
             <p><strong>Company:</strong> Tripeloo Travel Management LLP</p>
             <p><strong>Location:</strong> South Beach, Calicut, Kerala</p>
-            <p><strong>Phone:</strong> <a href="tel:7066444430" className="text-[#E51A4B] hover:underline">7066444430</a></p>
+            <p><strong>Phone:</strong> <a href="tel:90379179463" className="text-[#E51A4B] hover:underline">90379179463</a></p>
             <p><strong>Email:</strong> <a href="mailto:support@tripeloo.com" className="text-[#E51A4B] hover:underline">support@tripeloo.com</a></p>
           </div>
 
@@ -144,7 +144,7 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-700 font-semibold mb-2">Tripeloo Travel Management LLP</p>
                 <p className="text-gray-700">South Beach, Calicut, Kerala</p>
                 <p className="text-gray-700">
-                  Phone: <a href="tel:7066444430" className="text-[#E51A4B] hover:underline">7066444430</a>
+                  Phone: <a href="tel:90379179463" className="text-[#E51A4B] hover:underline">90379179463</a>
                 </p>
                 <p className="text-gray-700">
                   Email: <a href="mailto:support@tripeloo.com" className="text-[#E51A4B] hover:underline">support@tripeloo.com</a>

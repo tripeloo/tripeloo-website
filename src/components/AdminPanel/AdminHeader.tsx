@@ -30,9 +30,9 @@ export function AdminHeader() {
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/destinations", label: "Destinations", icon: MapPin },
     { href: "/admin/stays", label: "Stays", icon: Hotel },
-    { href: "/admin/things", label: "Things to Do", icon: Activity },
-    { href: "/admin/trips", label: "Food spots", icon: UtensilsCrossed },
-    { href: "/admin/tour-packages", label: "Tour Packages", icon: Package },
+    // { href: "/admin/things", label: "Things to Do", icon: Activity },
+    // { href: "/admin/trips", label: "Food spots", icon: UtensilsCrossed },
+    // { href: "/admin/tour-packages", label: "Tour Packages", icon: Package },
     { href: "/admin/share", label: "Share", icon: Share2 },
   ];
 
