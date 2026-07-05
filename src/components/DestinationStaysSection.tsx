@@ -200,14 +200,14 @@ export function DestinationStaysSection({
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex items-end justify-between gap-3 mb-5 sm:mb-6"
+          className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-5 sm:mb-6"
         >
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 font-display">
-            Stays in {destinationName}
+          <h2 className="col-start-2 text-center text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 font-display px-2">
+            Best of {destinationName}
           </h2>
           <Link
             href={discoverMoreUrl}
-            className="text-[#E51A4B] text-sm font-semibold shrink-0 hover:text-red-700 transition-colors"
+            className="col-start-3 justify-self-end text-[#E51A4B] text-sm font-semibold shrink-0 hover:text-red-700 transition-colors"
           >
             View all
           </Link>
@@ -221,7 +221,7 @@ export function DestinationStaysSection({
                 ref={prevRef}
                 type="button"
                 className="absolute left-0 md:left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white text-gray-800 p-2.5 md:p-3 rounded-full shadow-xl border border-gray-200 hover:border-[#E51A4B] hover:text-[#E51A4B] flex items-center justify-center"
-                aria-label={`Previous stays in ${destinationName}`}
+                aria-label={`Previous — Best of ${destinationName}`}
               >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -231,7 +231,7 @@ export function DestinationStaysSection({
                 ref={nextRef}
                 type="button"
                 className="absolute right-0 md:right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white text-gray-800 p-2.5 md:p-3 rounded-full shadow-xl border border-gray-200 hover:border-[#E51A4B] hover:text-[#E51A4B] flex items-center justify-center"
-                aria-label={`Next stays in ${destinationName}`}
+                aria-label={`Next — Best of ${destinationName}`}
               >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />

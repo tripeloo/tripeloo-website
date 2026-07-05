@@ -96,7 +96,7 @@ export function FeaturedDestinations() {
     fetchFeatured();
   }, []);
 
-  const highlightCards = destinations.slice(0, 4);
+  const highlightCards = destinations.slice(0, 8);
 
   if (loading) {
     return (
@@ -104,7 +104,7 @@ export function FeaturedDestinations() {
         <div className="container px-3 sm:px-4">
           <SectionHeader />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
                 key={i}
                 className="aspect-[5/3] sm:aspect-[2/1] rounded-2xl sm:rounded-3xl bg-gray-200 animate-pulse"

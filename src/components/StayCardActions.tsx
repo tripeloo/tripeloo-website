@@ -15,6 +15,16 @@ export function buildStayBookingWhatsAppMessage(
   return `Hi Tripeloo! I would like to book ${stayName} in ${location}. Please share availability and details.`;
 }
 
+export function openStayWhatsAppBooking(stayName: string, location: string) {
+  if (typeof window === "undefined") return;
+  const phone = formatWhatsAppNumber(getRandomStayCardWhatsAppNumber());
+  const text = encodeURIComponent(buildStayBookingWhatsAppMessage(stayName, location));
+  window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener,noreferrer");
+}
+
+export const stayWhatsAppButtonClassName =
+  "bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold shadow-lg shadow-[#25D366]/35 ring-2 ring-[#25D366]/45 hover:ring-[#25D366]/60 transition-all duration-300";
+
 interface StayCardActionsProps {
   stayName: string;
   location: string;
@@ -33,15 +43,7 @@ export function StayCardActions({
   const handleWhatsAppClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const phone = formatWhatsAppNumber(getRandomStayCardWhatsAppNumber());
-    const text = encodeURIComponent(
-      buildStayBookingWhatsAppMessage(stayName, location)
-    );
-    window.open(
-      `https://wa.me/${phone}?text=${text}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    openStayWhatsAppBooking(stayName, location);
   };
 
   return (
@@ -52,7 +54,7 @@ export function StayCardActions({
       <button
         type="button"
         onClick={handleWhatsAppClick}
-        className="md:hidden w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs sm:text-sm font-semibold transition-colors"
+        className={`md:hidden w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm ${stayWhatsAppButtonClassName}`}
       >
         <FaWhatsapp className="w-5 h-5 flex-shrink-0" />
         Book through WhatsApp

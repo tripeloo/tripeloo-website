@@ -207,6 +207,41 @@ function destinationMatchesSearch(dest: Destination, query: string): boolean {
   return haystack.includes(q);
 }
 
+function formatSectionCopyText(section: ShareDetailSection): string {
+  return `${section.heading}:\n${section.points.map((point) => `• ${point}`).join("\n")}`;
+}
+
+function CopyIconButton({
+  text,
+  copyKey,
+  copiedKey,
+  onCopy,
+  showLabel = true,
+  className = "",
+}: {
+  text: string;
+  copyKey: string;
+  copiedKey: string | null;
+  onCopy: (e: React.MouseEvent, text: string, key: string) => void;
+  showLabel?: boolean;
+  className?: string;
+}) {
+  const isCopied = copiedKey === copyKey;
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => onCopy(e, text, copyKey)}
+      className={`relative z-10 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-white bg-[#E51A4B] hover:bg-[#c91742] border border-white/25 rounded-lg shadow-md shrink-0 ${className}`}
+      aria-label="Copy text"
+      title="Copy to clipboard"
+    >
+      {isCopied ? <Check size={16} /> : <Copy size={16} />}
+      {showLabel && (isCopied ? "Copied" : "Copy")}
+    </button>
+  );
+}
+
 function ItemNameHeading({
   item,
   subtitle,
@@ -262,6 +297,8 @@ export default function SharePanel() {
   const [includeSummary, setIncludeSummary] = useState(true);
   const [includePrice, setIncludePrice] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [detailsCopied, setDetailsCopied] = useState(false);
+  const [copiedTextKey, setCopiedTextKey] = useState<string | null>(null);
   const [photosLoading, setPhotosLoading] = useState(false);
   const [photosReady, setPhotosReady] = useState(false);
   const [photoLoadProgress, setPhotoLoadProgress] = useState("");
@@ -516,6 +553,27 @@ export default function SharePanel() {
 
   const summaryText = (selectedItem?.summary || selectedItem?.about || "").trim();
 
+  const buildCurrentDetailsMessage = () => {
+    if (!selectedItem) return "";
+    return buildDetailsShareMessage(
+      selectedItem.name,
+      destinationName,
+      itemTypeLabel(itemType),
+      enabledSections,
+      {
+        category: selectedItem.category,
+        location: selectedItem.location,
+        price: includePrice ? priceText : undefined,
+        summary: includeSummary ? summaryText : undefined,
+      }
+    );
+  };
+
+  const hasDetailsContent =
+    enabledSections.length > 0 ||
+    (includeSummary && !!summaryText) ||
+    (includePrice && !!priceText);
+
   const toggleImage = (url: string) => {
     setSelectedImageUrls((prev) => {
       const next = new Set(prev);
@@ -607,27 +665,33 @@ export default function SharePanel() {
 
   const handleShareDetails = () => {
     if (!selectedItem) return;
-    const message = buildDetailsShareMessage(
-      selectedItem.name,
-      destinationName,
-      itemTypeLabel(itemType),
-      enabledSections,
-      {
-        category: selectedItem.category,
-        location: selectedItem.location,
-        price: includePrice ? priceText : undefined,
-        summary: includeSummary ? summaryText : undefined,
-      }
-    );
-    const hasContent =
-      enabledSections.length > 0 ||
-      (includeSummary && !!summaryText) ||
-      (includePrice && !!priceText);
-    if (!hasContent) {
+    const message = buildCurrentDetailsMessage();
+    if (!hasDetailsContent) {
       alert("Please select at least one detail section to share.");
       return;
     }
     openWhatsAppShare(message);
+  };
+
+  const handleCopyDetails = async () => {
+    if (!selectedItem) return;
+    const message = buildCurrentDetailsMessage();
+    if (!hasDetailsContent) {
+      alert("Please select at least one detail section to copy.");
+      return;
+    }
+    await navigator.clipboard.writeText(message);
+    setDetailsCopied(true);
+    setTimeout(() => setDetailsCopied(false), 2000);
+  };
+
+  const handleCopyText = async (e: React.MouseEvent, text: string, key: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!text.trim()) return;
+    await navigator.clipboard.writeText(text);
+    setCopiedTextKey(key);
+    setTimeout(() => setCopiedTextKey(null), 2000);
   };
 
   const handleCopyCaption = async () => {
@@ -918,7 +982,10 @@ export default function SharePanel() {
                 }`}
               >
                 <List size={20} />
-                Text details
+                <span className="flex flex-col items-start leading-tight">
+                  <span>Text details</span>
+                  <span className="text-[10px] font-normal opacity-90">Copy lines here</span>
+                </span>
               </button>
             </div>
           </div>
@@ -1067,31 +1134,49 @@ export default function SharePanel() {
                 </div>
               </div>
 
+              <p className="text-xs sm:text-sm text-white/70 mb-4 bg-gray-800/60 border border-gray-600 rounded-lg px-3 py-2">
+                Tap the red <strong className="text-white">Copy</strong> button on any line to copy that text.
+              </p>
+
               <div className="space-y-3 mb-4">
                 {summaryText && (
-                  <label className="flex items-start gap-3 p-3 bg-gray-800/80 rounded-lg cursor-pointer hover:bg-gray-700/80">
+                  <div className="flex items-start gap-3 p-3 bg-gray-800/80 rounded-lg border border-gray-700">
                     <input
                       type="checkbox"
                       checked={includeSummary}
                       onChange={(e) => setIncludeSummary(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-[#E51A4B] rounded"
+                      className="mt-1 w-4 h-4 text-[#E51A4B] rounded shrink-0"
                     />
-                    <div>
-                      <span className="font-medium">About / summary</span>
-                      <p className="text-sm text-white/60 mt-1 line-clamp-3">{summaryText}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-medium">About / summary</span>
+                        <CopyIconButton
+                          text={summaryText}
+                          copyKey="summary"
+                          copiedKey={copiedTextKey}
+                          onCopy={handleCopyText}
+                        />
+                      </div>
+                      <p className="text-sm text-white/60 mt-1">{summaryText}</p>
                     </div>
-                  </label>
+                  </div>
                 )}
                 {priceText && (
-                  <label className="flex items-center gap-3 p-3 bg-gray-800/80 rounded-lg cursor-pointer hover:bg-gray-700/80">
+                  <div className="flex items-center gap-3 p-3 bg-gray-800/80 rounded-lg border border-gray-700">
                     <input
                       type="checkbox"
                       checked={includePrice}
                       onChange={(e) => setIncludePrice(e.target.checked)}
-                      className="w-4 h-4 text-[#E51A4B] rounded"
+                      className="w-4 h-4 text-[#E51A4B] rounded shrink-0"
                     />
-                    <span className="font-medium">Price — {priceText}</span>
-                  </label>
+                    <span className="font-medium flex-1 min-w-0">Price — {priceText}</span>
+                    <CopyIconButton
+                      text={priceText}
+                      copyKey="price"
+                      copiedKey={copiedTextKey}
+                      onCopy={handleCopyText}
+                    />
+                  </div>
                 )}
               </div>
 
@@ -1102,9 +1187,9 @@ export default function SharePanel() {
                   {detailSections.map((section) => {
                     const enabled = enabledSectionIds.has(section.id);
                     return (
-                      <label
+                      <div
                         key={section.id}
-                        className={`block p-4 rounded-lg border cursor-pointer transition-all ${
+                        className={`p-4 rounded-lg border transition-all ${
                           enabled
                             ? "bg-gray-800/90 border-[#E51A4B]/50"
                             : "bg-gray-900/50 border-gray-700 opacity-70"
@@ -1115,34 +1200,64 @@ export default function SharePanel() {
                             type="checkbox"
                             checked={enabled}
                             onChange={() => toggleSection(section.id)}
-                            className="mt-1 w-4 h-4 text-[#E51A4B] rounded"
+                            className="mt-1 w-4 h-4 text-[#E51A4B] rounded shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <span className="font-semibold">{section.heading}</span>
-                            <ul className="mt-2 space-y-1">
+                            <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                              <span className="font-semibold">{section.heading}</span>
+                              <CopyIconButton
+                                text={formatSectionCopyText(section)}
+                                copyKey={`section-${section.id}`}
+                                copiedKey={copiedTextKey}
+                                onCopy={handleCopyText}
+                              />
+                            </div>
+                            <ul className="space-y-2">
                               {section.points.map((point, i) => (
-                                <li key={i} className="text-sm text-white/80 flex gap-2">
-                                  <span className="text-[#E51A4B]">•</span>
-                                  <span>{point}</span>
+                                <li
+                                  key={i}
+                                  className="text-sm text-white/80 flex items-start gap-2 p-2 rounded-lg bg-black/20 border border-gray-700/60"
+                                >
+                                  <span className="text-[#E51A4B] shrink-0 mt-0.5">•</span>
+                                  <span className="flex-1 min-w-0 break-words">{point}</span>
+                                  <CopyIconButton
+                                    text={point}
+                                    copyKey={`${section.id}-${i}`}
+                                    copiedKey={copiedTextKey}
+                                    onCopy={handleCopyText}
+                                    className="mt-0.5"
+                                  />
                                 </li>
                               ))}
                             </ul>
                           </div>
                         </div>
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={handleShareDetails}
-                className="hidden md:flex w-full mt-6 items-center justify-center gap-2 py-3 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold rounded-xl transition-colors"
-              >
-                <Share2 size={20} />
-                Share details on WhatsApp
-              </button>
+              <div className="hidden md:flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={handleShareDetails}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold rounded-xl transition-colors"
+                >
+                  <Share2 size={20} />
+                  Share details on WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyDetails}
+                  className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-xl"
+                  aria-label="Copy share message"
+                  title="Copy full share message"
+                >
+                  {detailsCopied ? <Check size={18} /> : <Copy size={18} />}
+                  {detailsCopied ? "Copied" : "Copy message"}
+                </button>
+              </div>
             </div>
           )}
         </>
@@ -1214,14 +1329,25 @@ export default function SharePanel() {
               </div>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={handleShareDetails}
-              className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold rounded-xl"
-            >
-              <Share2 size={22} />
-              Share details on WhatsApp
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleShareDetails}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold rounded-xl"
+              >
+                <Share2 size={22} />
+                Share details on WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyDetails}
+                className="p-3.5 bg-gray-800 border border-gray-600 rounded-xl"
+                aria-label="Copy share message"
+                title="Copy full share message"
+              >
+                {detailsCopied ? <Check size={22} /> : <Copy size={22} />}
+              </button>
+            </div>
           )}
         </div>
       )}

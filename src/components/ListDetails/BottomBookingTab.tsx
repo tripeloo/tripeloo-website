@@ -3,6 +3,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { LeadFormPopup } from '@/components/LeadFormPopup';
+import { FaWhatsapp } from 'react-icons/fa';
+import {
+  openStayWhatsAppBooking,
+  stayWhatsAppButtonClassName,
+} from '@/components/StayCardActions';
 
 interface BottomBookingTabProps {
   selectedRooms?: any[];
@@ -61,6 +66,14 @@ export function BottomBookingTab({ selectedRooms = [], selectedPackages = [], ti
 
   // Always show the tab, even if no items are selected
 
+  const handleMobileAction = () => {
+    if (itemType === 'stay') {
+      openStayWhatsAppBooking(title, destination || '');
+      return;
+    }
+    setIsPopupOpen(true);
+  };
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -75,6 +88,21 @@ export function BottomBookingTab({ selectedRooms = [], selectedPackages = [], ti
         >
           <div className="max-w-md mx-auto px-4 py-3">
             <div className="flex items-center justify-between gap-3">
+              {itemType === 'stay' ? (
+                <motion.button
+                  animate={shouldShake ? {
+                    x: [0, -10, 10, -10, 10, 0],
+                    scale: [1, 1.02, 1],
+                  } : {}}
+                  transition={{ duration: 0.5 }}
+                  onClick={handleMobileAction}
+                  className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl text-sm sm:text-base ${stayWhatsAppButtonClassName}`}
+                >
+                  <FaWhatsapp className="w-6 h-6 flex-shrink-0" />
+                  <span>Book through WhatsApp</span>
+                </motion.button>
+              ) : (
+                <>
               <div className="flex-1">
                 <p className="text-xs text-gray-500 mb-1">Grab your special deal</p>
                 {selectedItems.length > 0 && (
@@ -97,6 +125,8 @@ export function BottomBookingTab({ selectedRooms = [], selectedPackages = [], ti
                 </svg>
                 <span>{formFilled ? 'Connect With Us' : 'Book With Us'}</span>
               </motion.button>
+                </>
+              )}
             </div>
           </div>
         </motion.div>

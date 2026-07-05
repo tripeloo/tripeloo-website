@@ -7,6 +7,11 @@ import RoomsSection from "@/components/ListDetails/RoomsSection";
 import BookingSidebar from "@/components/ListDetails/ListingDetailsClient";
 import NearbyItems from "@/components/NearbyItems";
 import { BottomBookingTab } from "@/components/ListDetails/BottomBookingTab";
+import {
+  openStayWhatsAppBooking,
+  stayWhatsAppButtonClassName,
+} from "@/components/StayCardActions";
+import { FaWhatsapp } from "react-icons/fa";
 import { Star, Car, Hotel, Utensils, Mountain, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useRef, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
@@ -251,6 +256,21 @@ const ListingDetailsContent = () => {
                   {formatPrice(stayData.startingPrice)}/-
                 </p>
               </div>
+
+              {/* Mobile — highlighted WhatsApp booking */}
+              <button
+                type="button"
+                onClick={() =>
+                  openStayWhatsAppBooking(
+                    stayData.name,
+                    destination || stayData.destinationName || stayData.destinationSlug || ""
+                  )
+                }
+                className={`md:hidden mt-4 w-full flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl text-sm font-semibold ${stayWhatsAppButtonClassName}`}
+              >
+                <FaWhatsapp className="w-5 h-5 flex-shrink-0" />
+                Book through WhatsApp
+              </button>
             </div>
 
             {/* Summary */}
