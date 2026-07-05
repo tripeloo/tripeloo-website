@@ -1100,16 +1100,19 @@ fbq('track', 'PageView');
                   </div>
                 )}
 
-                {/* Destination overview form */}
+                {/* Destination overview form — hidden for now */}
+                {false &&
+                  destination && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
-                    Plan your trip to {destination.name}
+                    Plan your trip to {destination?.name}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-500 mb-4">
                     Share a few details and we’ll get back with ideas and options for this destination.
                   </p>
-                  <DestinationOverviewForm destinationName={destination.name} />
+                  <DestinationOverviewForm destinationName={destination?.name ?? ""} />
                 </div>
+                  )}
               </motion.div>
 
             </div>
@@ -1201,7 +1204,7 @@ fbq('track', 'PageView');
                       transition: { duration: 0.3 }
                     }}
                     onClick={() => handleItemClick(item.id, section.type)}
-                    className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer relative flex-shrink-0 w-[280px] sm:w-auto sm:flex-shrink"
+                    className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer relative flex-shrink-0 w-[280px] sm:w-auto sm:flex-shrink sm:self-start"
                   >
                     {/* Card Glow on Hover */}
                     <motion.div
@@ -1242,16 +1245,21 @@ fbq('track', 'PageView');
                         </motion.div>
                       )}
                     </div>
-                    <div className="p-5 sm:p-6 flex flex-col h-full">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 group-hover:text-[#E51A4B] transition line-clamp-2 font-display">
+                    <div className="p-4 sm:p-5 flex flex-col">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 group-hover:text-[#E51A4B] transition line-clamp-2 font-display">
                         {item.name}
                       </h3>
+                      {section.type === "stay" && item.category && item.category !== "General" && (
+                        <p className="text-xs sm:text-sm text-gray-500 mb-2 line-clamp-1">
+                          {item.category}
+                        </p>
+                      )}
                       {section.type === "stay" && item.highlights && item.highlights.length > 0 && (
-                        <ul className="space-y-1.5 mb-4">
+                        <ul className="space-y-1 mb-2">
                           {item.highlights.slice(0, 2).map((highlight, i) => (
-                            <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                              <span className="w-1.5 h-1.5 bg-[#E51A4B] rounded-full" />
-                              {highlight}
+                            <li key={i} className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                              <span className="w-1.5 h-1.5 bg-[#E51A4B] rounded-full shrink-0" />
+                              <span className="line-clamp-1">{highlight}</span>
                             </li>
                           ))}
                         </ul>
@@ -1280,7 +1288,7 @@ fbq('track', 'PageView');
                             setLeadPopupStay(item);
                             setShowLeadPopup(true);
                           }}
-                          className="mt-auto"
+                          className="!mt-2 !pt-2"
                         />
                       )}
                     </div>
